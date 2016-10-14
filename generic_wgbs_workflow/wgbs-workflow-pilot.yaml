@@ -1,0 +1,330 @@
+cwlVersion: "cwl:draft-3"
+#cwlVersion: "v1.0"
+
+class: Workflow
+
+requirements:
+  - class: ScatterFeatureRequirement
+  - class: InlineJavascriptRequirement
+    expressionLib:
+    - "var new_ext = function() { var ext=inputs.bai?'.bai':inputs.csi?'.csi':'.bai'; return inputs.input.path.split('/').slice(-1)[0]+ext; };"
+  - class: StepInputExpressionRequirement
+  - class: MultipleInputFeatureRequirement
+  
+inputs:
+  - id: inp_read1
+    type: File
+  - id: inp_read2
+    type: File
+  - id: fastq_batch_size
+    type: int
+  - id: reference_fasta
+    type: File
+  - id: illuminaclip
+    type: string
+  - id: pileometh_ot
+    type: string
+  - id: pileometh_ob
+    type: string
+  - id: pileometh_ctot
+    type: string
+  - id: pileometh_ctob
+    type: string
+#  - id: test_bam
+#    type: File
+#  - id: slidingw
+#    type: string
+#    default: "30"
+#  - id: minl
+#    type: int
+#    default: 20
+
+outputs:
+  - id: sequence_files_read1
+    type: 
+      type: array
+      items: Any
+    #source: "#split_read1_files/output"
+    source: "#adaptor_trimming/output_read1_trimmed_file"
+    
+  - id: sequence_files_read2
+    type: 
+      type: array
+      items: Any
+    #source: "#split_read2_files/output"
+    source: "#adaptor_trimming/output_read2_trimmed_paired_file"
+    
+  - id: alignment
+    type: 
+      type: array
+      items: File
+    source: "#alignment/alignment"
+    
+  - id: merged_bam
+    type: File
+    source: "#bam_merging/mergeSam_output"
+  
+  - id: indexed_bam
+    type: File
+    source: "#index_bam_file/index"
+  
+  - id: duplicate_removed
+    type: File
+    source: "#duplicates_removal/markDups_output"
+#    
+  - id: mbias_file
+    type:
+      type: array
+      items: File
+    source: "#mbias_calculation/mbias_file"  
+#    
+  - id: split_by_chromosome
+    type:
+      type: array
+      items: File
+    source: "#split_by_chromosome/output_bam_files"  
+
+#  - id: methylation_calls_simple
+#    type: File
+#    source: "#methylation_calling/methcall_bed"
+#
+  - id: methylation_calls
+    type: File
+    source: "#merge_meth_calls/merged_bed_file"
+#  
+#  - id: lambda_bam_file
+#    type: File
+#    source: "#find_lambda_file/lambda_bam"
+
+  - id: methylation_calls_lambda
+    type: File
+    source: "#methylation_calling_lambda/methcall_bed"
+    
+  - id: bisulfite_conversion_estimation
+    type: File
+    source: "#conversion_estimation_lambda/bisulfite_conversion_file"
+  
+steps:
+  - id: split_read1_files
+    run: "tools/split_files.yaml"
+    inputs:
+      - {id: file, source: "#inp_read1"}
+      - {id: size, source: "#fastq_batch_size"}
+      - {id: suffix, default: '100k_R1.fastq'}
+    outputs:
+      - {id: output}
+      
+  - id: split_read2_files
+    run: "tools/split_files.yml"
+    inputs:
+      - {id: file, source: "#inp_read2"}
+      - {id: size, source: "#fastq_batch_size"}
+      - {id: suffix, default: '100k_R2.fastq'}
+    outputs:
+      - {id: output}
+   
+  - id: adaptor_trimming
+    run: "tools/trimmomatic.yml"
+    scatter: [ "#adaptor_trimming/input_read1_fastq_file", "#adaptor_trimming/input_read2_fastq_file" ]
+    scatterMethod: 'dotproduct'
+    inputs: 
+      #- { id: trimmomatic_jar_path, default: '/usr/share/java/trimmomatic.jar'}
+      - { id: java_opts, default: "-XX:-UseCompressedClassPointers -Xmx512M -verbose"}
+      - { id: trimmomatic_jar_path, default: '/opt/miniconda/pkgs/trimmomatic-0.36-3/share/trimmomatic/trimmomatic.jar'}
+      - { id: end_mode, default: 'PE'}
+      - { id: input_adapters_file, default: {
+             "path":  "/opt/miniconda/pkgs/trimmomatic-0.36-3/share/trimmomatic/adapters/TruSeq2-PE.fa",
+             "class": "File"
+        }}
+      #- { id: illuminaclip, default: '2:30:10'}
+      - { id: illuminaclip, source: "#illuminaclip"}
+      - { id: input_read1_fastq_file, source: "#split_read1_files/output" }
+      - { id: input_read2_fastq_file, source: "#split_read2_files/output" }
+    outputs:
+      - { id: output_read1_trimmed_file }
+      - { id: output_read2_trimmed_paired_file }
+      
+  - id: alignment
+    run: "tools/bwameth.yml"
+    scatter: [ "#alignment/read1", "#alignment/read2" ]
+    scatterMethod: 'dotproduct'
+    inputs:
+     # - { id: threads, default: '1'}
+#      - { id: reference, default: {
+#          "path": '/ngs_share/data/genomes/Hsapiens/GRCh37/bwameth/GRCh37.fa',
+#          "class": File
+#         }
+#      }
+      - { id: reference, source: "#reference_fasta" }
+      - { id: read1, source: "#adaptor_trimming/output_read1_trimmed_file" }
+      - { id: read2, source: "#adaptor_trimming/output_read2_trimmed_paired_file" }
+      - id: alignment_filename
+        source: "#adaptor_trimming/output_read1_trimmed_file"
+        valueFrom: $(inputs.read1.basename).sam 
+        #valueFrom: $(self.basename + ".sam")
+    outputs:
+      - { id: alignment }
+      
+#  - id: bam_merging
+#    run: "tools/dummy-cat-tool.yml"
+#    inputs:
+#      - id: inputFileName_mergedSam 
+#        source: "#alignment/alignment"
+##        valueFrom: $(self)
+#      - { id: outputFileName_mergedSam, default: "merged_alignment.bam" }
+#     # - { id: tmpdir, valueFrom: $(runtime.tmpdir)} # does not work due to some reason
+#     # - { id: tmpdir, valueFrom: "/ngs_share/tmp/"}
+#    outputs:
+#      - { id: mergeSam_output }      
+      
+  - id: bam_merging
+    run: "tools/picard-MergeSamFiles.yml"
+    inputs:
+      - id: inputFileName_mergedSam 
+        source: "#alignment/alignment"
+      - { id: outputFileName_mergedSam, default: "merged_alignment.bam"}
+     # - { id: tmpdir, valueFrom: $(runtime.tmpdir)} # does not work due to some reason
+      - { id: tmpdir, default: "/ngs_share/tmp/"}
+    outputs:
+      - { id: mergeSam_output }
+      
+  - id: index_bam_file
+    run: "tools/samtools-index.yml"
+    inputs:
+      - { id: input, source: "#bam_merging/mergeSam_output" }
+      #- { id: bai, valueFrom: $(Boolean(1)) }
+      - { id: bai, default: true }
+    outputs:
+      - { id: index }
+      
+  - id: duplicates_removal
+    run: "tools/picard-MarkDuplicates.yml"
+    inputs:
+      - id: inputFileName_markDups
+        source: "#bam_merging/mergeSam_output"
+        valueFrom: $([self])
+      - { id: outputFileName_markDups, valueFrom: "merged_alignment.bam" }
+      #- { id: tmpdir, valueFrom: $(runtime.tmpdir) }
+      - { id: tmpdir, valueFrom: "/ngs_share/tmp/"}
+      - { id: removeDuplicates, valueFrom: "true" }
+      - { id: createIndex, valueFrom: "true" }
+      - { id: metricsFile, valueFrom: "duplicate_metrics.txt"}
+    outputs:
+      - { id: markDups_output }
+      
+  - id: mbias_calculation
+    run: "tools/pileometh-mbias.yml"
+    inputs:
+      - { id: bam_file, source: "#duplicates_removal/markDups_output" }
+#      - { id: reference, default: {
+#         "path": '/ngs_share/data/genomes/Hsapiens/GRCh37/bwameth/GRCh37.fa',
+#         "class": File }
+#        }
+      - id: reference
+        source: "#reference_fasta"
+      - { id: mbiasfile_name, default: "mbias" }
+    outputs:
+      - { id: mbias_file }
+      
+  - id: split_by_chromosome
+    run: "tools/bamtools-split.yml"
+    inputs:
+      - { id: input_bam_file, source: "#duplicates_removal/markDups_output" }
+      - { id: split_options, default: "reference" }
+      - { id: ref_prefix, default: "chr" }
+    outputs:
+      - { id: output_bam_files }
+
+  - id: methylation_calling
+    run: "tools/pileometh-extract.yml"
+    scatter: "#methylation_calling/bam_file"
+    inputs:
+      #- { id: bam_file, source: "#duplicates_removal/markDups_output" }
+      - id: bam_file
+        source: "#split_by_chromosome/output_bam_files"
+      - id: bedfile_name
+        source: "#split_by_chromosome/output_bam_files"
+        valueFrom: $(inputs.bam_file.basename).bed        
+      - id: reference
+        source: "#reference_fasta"
+      #- { id: noCG, valueFrom: $(Boolean(0)) }
+      - { id: noCG, default: false }
+#      - { id: OT, default: "0,0,0,0"}
+#      - { id: OB, default: "0,0,0,0"}
+#      - { id: CTOT, default: "0,0,0,0"}
+#      - { id: CTOB, default: "0,0,0,0"}
+      - { id: OT, source: "#pileometh_ot"}
+      - { id: OB,  source: "#pileometh_ob"}
+      - { id: CTOT,  source: "#pileometh_ctot"}
+      - { id: CTOB,  source: "#pileometh_ctob"}
+    outputs:
+      - { id: methcall_bed }
+##      
+  - id: merge_meth_calls
+    run: "tools/methcall-merger.yml"
+    inputs:
+      - { id: input_bed_files, source: "#methylation_calling/methcall_bed" }
+      - { id: output_file_name, default: "methcalls_CpG.bedGraph" }
+    outputs:
+      - { id: merged_bed_file}
+   
+  - id: find_lambda_file
+    run: "tools/find_lambda.yml"
+    inputs:
+      - { id: split_files, source: "#split_by_chromosome/output_bam_files" }
+    outputs:
+      - { id: lambda_bam }      
+            
+  - id: methylation_calling_lambda
+    run: "tools/pileometh-extract.yml"
+    inputs:
+      #- { id: bam_file, source: "#duplicates_removal/markDups_output" }
+      - id: reference
+        source: "#reference_fasta"
+#        valueFrom: $(self)
+#      - id: noCG
+#        valueFrom: $(Boolean(1))
+      - { id: noCG, default: true }
+      - { id: bedfile_name, default: "lambda_CHH.bed"}
+      - { id: OT, source: "#pileometh_ot"}
+      - { id: OB,  source: "#pileometh_ob"}
+      - { id: CTOT,  source: "#pileometh_ctot"}
+      - { id: CTOB,  source: "#pileometh_ctob"}
+      - id: bam_file
+        source: "#find_lambda_file/lambda_bam"
+#      - id: bam_file
+#        source: "#test_bam"
+#        valueFrom: $([self])
+    outputs:
+      - { id: methcall_bed }
+#    
+  - id: conversion_estimation_lambda
+    run: "tools/bisulfite-conversion-lambda.yml"
+    inputs:
+      - { id: input_bed_file, source: "#methylation_calling_lambda/methcall_bed" }
+      - { id: output_file_name, default: "bisulfite_conversion.txt" }
+    outputs:
+      - { id: bisulfite_conversion_file }
+    
+
+### END
+      #- { id: bam_file, source: "#split_by_chromosome/output_bam_files", valueFrom: $([self[$(for(var i=0; i<self.length; i++){ if(self[i].basename.indexOf("Lambda")) return i; })]]) }
+#      - id: bam_file
+#        source: "#split_by_chromosome/output_bam_files"
+#        valueFrom: $(self[0])
+#       valueFrom: $([self[for(var i=0; i<self.length; i++){ if(self[i].basename.indexOf("Lambda")) return i; }]])
+#        valueFrom: |
+#          ${
+#             var index = self.length;
+#             for(var i=0; i<self.length; i++){ 
+#                if(self[i].basename.indexOf("Lambda") !== -1){
+#                    index = i;
+#                }
+#             }
+#             index = self.length;
+#             return self[index];
+#           }
+#        valueFrom: |
+#          ${
+#              return self;
+#          }

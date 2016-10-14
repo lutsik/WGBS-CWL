@@ -1,0 +1,44 @@
+#!/usr/bin/env cwl-runner
+cwlVersion: "cwl:draft-3"
+class: CommandLineTool
+
+inputs:
+- id: "bam_file"
+  type: File
+  description: |
+    the input bam file
+  secondaryFiles:
+    - ^.bai
+  inputBinding:
+    position: 4
+
+- id: "reference"
+  type: File
+  description: |
+    FASTA file with the reference genome
+  secondaryFiles:
+    - .fai
+  inputBinding:
+    position: 3
+    
+- id: "mbiasfile_name"
+  type: string
+  description: |
+    FASTA file 
+  inputBinding:
+    position: 1000000
+    separate: true
+ 
+outputs:
+- id: "mbias_file"
+  type:
+    type: array
+    items: File
+  outputBinding:
+    glob: "*$(inputs.mbiasfile_name)*"
+
+baseCommand: ["/ngs_share/tools/PileOMeth/PileOMeth"]
+
+arguments:
+- valueFrom: "mbias"
+  position: 2

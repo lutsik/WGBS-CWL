@@ -1,0 +1,16 @@
+inp_read1:
+  class: File
+  path: /ngs_share/scratch/benchmark/encode_chr22_test/data/chr22_10k_1.fastq
+inp_read2:
+  class: File
+  path: /ngs_share/scratch/benchmark/encode_chr22_test/data/chr22_10k_2.fastq
+reference_fasta:
+  class: File
+  path: /ngs_share/data/genomes/Hsapiens/GRCh37/bwameth/GRCh37.lambda.fa
+fastq_batch_size: 10000
+suffix: splitted
+illuminaclip: "2:30:10"
+pileometh_ot: "0,0,2,147"
+pileometh_ob: "0,0,5,150"
+pileometh_ctot: "0,0,0,0"
+pileometh_ctob: "0,0,0,0"
