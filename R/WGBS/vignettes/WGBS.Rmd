@@ -1,0 +1,98 @@
+---
+title: "Using the WGBS Package"
+author: "Yassen Assenov"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r eval=TRUE,echo=FALSE}
+library(WGBS)
+library(ggplot2)
+library(grid)
+theme_set(theme_bw())
+assembly <- wgbs.load.toy.assembly()
+chrom.sizes <- WGBS:::wgbs.get.chrom.cpgs(assembly)
+```
+
+The WGBS package compares the outcomes of a set of whole genome bisulfite sequencing pipelines run on the same sample in a given genome assembly. The package computes a collections of metrics on every pair of pipeline outcomes and visualizes the results.
+
+This document first introduces a toy example (consisting of an artificial micro-genome and the outcomes of three pipelines). It then describes the functionality of the package by defining the concepts used, the functions for importing data and calculating metrics. The last section of this package summarizes how the package can be extended by adding annotations and metrics.
+
+## Toy Example
+
+### Genome Assebly
+
+The *WGBS* package contains a micro-assembly definition named **Toy assembly**. This genome assembly contains a total of `r sum(chrom.sizes)` CpGs distributed on the following `r length(chrom.sizes)` chromosomes:
+```{r comment=''} 
+assembly <- wgbs.load.toy.assembly()
+wgbs.get.chromosomes(assembly)
+```
+The figure below displays the distribution of CpG dinucleotides within the toy assembly.
+
+```{r echo=FALSE,fig.cap='CpGs in Toy assembly',fig.height=3.3,fig.width=7.2,fig.show='hold',fig.align='center'}
+
+dframe <- WGBS:::wgbs.load.coordinates(file.path(assembly@dir.assembly, "001.WGBS"), sum(chrom.sizes))
+dframe <- data.frame(
+	"Chr" = factor(rep(names(chrom.sizes), chrom.sizes * 2), levels = names(chrom.sizes)),
+	"Pos" = rep(dframe, each = 2) + c(0L, 1L),
+	"Str" = factor(c("+", "-"), levels = c("-", "+")))
+xmax <- max(dframe$`Pos`)
+pp <- ggplot(dframe, aes_string('x' = 'Pos', 'y' = 'Str')) + facet_grid(Chr ~ .) +
+	geom_point(shape = 1, size = 6) + labs(x = "Chromosomal position", y = "Strand") +
+	scale_x_continuous(breaks = 1:xmax, limits = c(0.5, xmax + 0.5), expand = c(0, 0)) +
+	theme(axis.ticks.y = element_blank(), panel.grid.minor = element_blank()) +
+	theme(panel.spacing = unit(0.3, "in"))
+print(pp)
+rm(chrom.sizes, dframe, xmax, pp)
+```
+
+### Pipelines
+
+The package contains example files storing the methylation calls of two pipelines in the miniature genome assembly. The input files are TAB-separated files with five columns defining chromosome, zero-based coordinate, strand, number of methylated reads and number of unmethylated reads, respectively. The code below prints the contents of the file correspoding to the first pipeline^[In this document, the term *pipeline* refers to the results of a given pipeline in the targeted assembly].
+
+```{r comment=''}
+fname <- system.file("extdata/pipeline1.txt", package="WGBS")
+txt <- scan(fname, what="", sep="\n", quiet=TRUE)
+cat(paste(txt, collapse="\n"))
+```
+
+Note that the file does not contain a header line. Cytosine positions that are not covered by the pipeline can either be specified as records with zero reads (as shown for chromosome 1, position 11) or omitted altogther (as can be seen for positions on chromosome X).
+
+The *WGBS* package uses its own internal format for storing pipeline results. In this format every pipeline has its dedicated directory containing a collection of binary files. The code snippet below imports the two example pipelines and saves them to temporary directories.
+
+```{r message=FALSE,results='hide'}
+bcalls <- lapply(1:2, function(i) {
+	fname <- system.file(paste0("extdata/pipeline", i, ".txt"), package="WGBS")
+	dname <- tempfile()
+	wgbs.import.pipeline.results(fname, assembly, dname, paste("Pipeline", i))
+})
+```
+The variable `bcalls` is a list of objects of type `BisulfiteCalls`, i.e. pipelines. These objects are discussed in details later in the vignette. Note that every pipeline has a targeted genome assembly, as well as associated name (also referred to as pipeline title).
+
+### Comparisons
+
+The computation of metrics of every pair of pipeline results is started using the function `wgbs.compute.metrics`, as shown in the code snippet below. Note that this process can be computationally and memory intensive.
+```{r eval=FALSE}
+dir.output <- tempfile() # directory to save results to
+wgbs.compute.metrics(bcalls, dir.output)
+```
+
+## Concepts
+
+TODO...
+
+## Extending WGBS
+
+This section introduces how the package functionality can be extended.
+
+### Annotations
+
+TODO...
+
+### Metrics
+
+TODO...

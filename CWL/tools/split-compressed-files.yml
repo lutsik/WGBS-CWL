@@ -1,0 +1,84 @@
+#!/usr/bin/env cwl-runner
+cwlVersion: "cwl:draft-3"
+class: CommandLineTool
+#
+requirements:
+# - class: CreateFileRequirement
+#   fileDef:
+#     - filename: zcat_split.sh
+#       fileContent: "zcat $1 | split - $2 $3"
+#- $import: envvar-global.yml
+#- $import: alea-docker.yml
+#- class: InlineJavascriptRequirement
+- class: ShellCommandRequirement
+
+hints:
+  - class: ResourceRequirement
+    coresMin: 1
+    ramMin: 15000
+    diskMin: 15000
+
+inputs:
+- id: "file"
+  type: File
+  description: |
+    the input fastq file
+  inputBinding:
+    position: 2
+
+- id: "size"
+  type: int
+  description: |
+    size of a chunck in lines
+  inputBinding:
+    prefix: --lines=
+    position: 10004
+    separate: False
+    
+- id: "suffix"
+  type: string
+  description: |
+    a suffix for chuncks
+  inputBinding:
+    prefix: --additional-suffix=
+    position: 10003
+    separate: False
+  
+outputs:
+- id: "output"
+  type:
+    type: array
+    items: File
+  outputBinding:
+    glob: "*$(inputs.suffix)*"
+
+baseCommand: ["zcat"]
+arguments:
+#- valueFrom: "\""
+#  position: -1
+#  shellQuote: false
+#- valueFrom: "|"
+#  position: 2
+#  shellQuote: false
+#- valueFrom: "xargs"
+#  position: 3
+#  shellQuote: false
+#- valueFrom: "zcat"
+#  position: 4
+#  shellQuote: false
+- valueFrom: "|"
+  position: 10000
+  shellQuote: false
+- valueFrom: "split"
+  position: 10001
+- valueFrom: "-"
+  position: 10002
+  shellQuote: false
+#- valueFrom: "\""
+#  position: 10005
+#  shellQuote: false
+
+
+
+#- valueFrom: "zcat_split.sh"
+#  position: 1

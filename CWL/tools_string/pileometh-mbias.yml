@@ -1,0 +1,89 @@
+#!/usr/bin/env cwl-runner
+cwlVersion: "cwl:draft-3"
+class: CommandLineTool
+
+requirements:
+  - class: ShellCommandRequirement
+
+inputs:
+- id: "bam_file"
+  type: string
+  description: |
+    the input bam file
+#  secondaryFiles:
+#    - ^.bai
+  inputBinding:
+    position: 5
+
+# replaced file with string for efficiency in Toil        
+#- id: "reference"
+#  type: File
+#  description: |
+#    FASTA file with the reference genome
+#  secondaryFiles:
+#    - .fai
+#  inputBinding:
+#    position: 3
+
+- id: "reference"
+  type: string
+  description: |
+    FASTA file with the reference genome
+  inputBinding:
+    position: 4
+            
+- id: "mbiasfile_name"
+  type: string
+  description: |
+    FASTA file 
+  inputBinding:
+    position: 1000000
+    separate: true
+    
+- id: "min_mapq"
+  type: int
+  default: 0
+  description: |
+    min_mapq
+  inputBinding:
+    prefix: "-q"
+    position: 100000
+    separate: true
+    
+- id: "min_phred"
+  type: int
+  default: 1
+  description: |
+    min_phred
+  inputBinding:
+    prefix: "-p"
+    position: 100000
+    separate: true
+    
+- id: "min_depth"
+  type: int
+  default: 1
+  description: |
+    min_depth
+  inputBinding:
+    prefix: "-D"
+    position: 100000
+    separate: true
+    
+ 
+outputs:
+- id: "mbias_file"
+  type:
+    type: array
+    items: File
+  outputBinding:
+    glob: "*$(inputs.mbiasfile_name)*"
+
+baseCommand: ["/ngs_share/tools/PileOMeth/PileOMeth"]
+stdout: $(inputs.mbiasfile_name).txt
+arguments:
+- valueFrom: "mbias"
+  position: 2
+- valueFrom: "--txt"
+  position: 3
+  shellQuote: false

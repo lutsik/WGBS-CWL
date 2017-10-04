@@ -1,0 +1,41 @@
+inp_read1: [
+  "/home/lutsik/c010-datasets/TWGBS/protocol_data/raw_sequence_data/A139Tgm1Lib1_NoIndex_L002_R1_complete_filtered.fastq.gz",
+  "/home/lutsik/c010-datasets/TWGBS/protocol_data/raw_sequence_data/A139Tgm2Lib2_NoIndex_L003_R1_complete_filtered.fastq.gz",
+  "/home/lutsik/c010-datasets/TWGBS/protocol_data/raw_sequence_data/A139Tgm1Lib3_NoIndex_L004_R1_complete_filtered.fastq.gz",
+  "/home/lutsik/c010-datasets/TWGBS/protocol_data/raw_sequence_data/A139Tgm2Lib4_NoIndex_L005_R1_complete_filtered.fastq.gz"
+]
+inp_read2: [
+  "/home/lutsik/c010-datasets/TWGBS/protocol_data/raw_sequence_data/A139Tgm1Lib1_NoIndex_L002_R2_complete_filtered.fastq.gz",
+  "/home/lutsik/c010-datasets/TWGBS/protocol_data/raw_sequence_data/A139Tgm2Lib2_NoIndex_L003_R2_complete_filtered.fastq.gz",
+  "/home/lutsik/c010-datasets/TWGBS/protocol_data/raw_sequence_data/A139Tgm1Lib3_NoIndex_L004_R2_complete_filtered.fastq.gz",
+  "/home/lutsik/c010-datasets/TWGBS/protocol_data/raw_sequence_data/A139Tgm2Lib4_NoIndex_L005_R2_complete_filtered.fastq.gz"
+ ]
+#reference_fasta:
+#  class: File
+#  path: /ngs_share/data/genomes/Hsapiens/GRCh37/bwameth/GRCh37.lambda.fa
+reference_fasta: /ngs_share/data/genomes/Hsapiens/GRCh37/bwameth/GRCh37.lambda.fa
+fastq_batch_size: 40000000
+max_reads: -1
+trimmomatic_jar_file: '/ngs_share/tools/trimmomatic-0.36/dist/jar/trimmomatic.jar'
+trimmomatic_adapters_file: '/opt/miniconda/pkgs/trimmomatic-0.36-3/share/trimmomatic/adapters/TruSeq2-PE.fa'
+trimmomatic_phred: "33"
+illuminaclip: "2:30:10"
+trimmomatic_leading: 0 
+trimmomatic_trailing: 0
+trimmomatic_crop: 1000
+trimmomatic_headcrop: 3
+trimmomatic_minlen: 0
+trimmomatic_avgqual: 1
+pileometh_min_phred: 0
+pileometh_min_depth: 1
+pileometh_min_mapq: 0
+pileometh_ot: "5,0,0,92"
+pileometh_ob: "0,94,7,0"
+pileometh_ctot: "0,0,0,0"
+pileometh_ctob: "0,0,0,0"
+pileometh_not: "0,7,0,0"
+pileometh_nob: "7,0,0,0"
+pileometh_nctot: "0,0,0,0"
+pileometh_nctob: "0,0,0,0"
+temp_dir: "/home/lutsik/c010-datasets/TWGBS/analysis/pilot_comparison/file_dir"
+analysis_dir: ""

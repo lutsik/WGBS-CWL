@@ -1,0 +1,56 @@
+#!/usr/bin/env cwl-runner
+
+# source: GGR-cwl / peak_calling / samtools-extract-number-mapped-reads.cwl 
+cwlVersion: "cwl:draft-3"
+
+class: CommandLineTool
+description: "Extract mapped reads from BAM file using Samtools flagstat command"
+
+hints:
+  - class: ResourceRequirement
+    coresMin: 1
+    ramMin: 10000
+#  - class: DockerRequirement
+#    dockerPull: 'dukegcb/samtools'
+
+requirements:
+  - class: InlineJavascriptRequirement
+  - class: ShellCommandRequirement
+
+inputs:
+  - id: "file_dir"
+    type: string
+  - id: "#input_bam_file"
+    type: string
+    description: "Aligned BAM file to filter"
+    inputBinding:
+      position: 10
+  - id: "#output_suffix"
+    type: string
+    default: ".flagStat"
+outputs:
+  - id: "#output"
+    type: string
+    description: "Samtools Flagstat report file"
+    outputBinding:
+      outputEval: $(inputs.file_dir + "/" + inputs.input_bam_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "") + inputs.output_suffix)
+
+baseCommand: cd
+arguments:
+- valueFrom: $(inputs.file_dir)
+  position: 1
+- valueFrom: ";"
+  position: 2
+- valueFrom: "samtools"
+  position: 3
+- valueFrom: "flagstat"
+  position: 4
+- valueFrom: ">"
+  position: 5
+- valueFrom: $(inputs.file_dir + "/" + inputs.input_bam_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "") + inputs.output_suffix)
+  position: 6
+#stdout: $(inputs.input_bam_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "") + inputs.output_suffix)
+#arguments:
+#  - valueFrom: " | head -n1 | cut -f 1 -d ' '"
+#    position: 10000
+#    shellQuote: False

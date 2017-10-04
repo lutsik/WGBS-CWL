@@ -1,0 +1,235 @@
+cwlVersion: "cwl:draft-3"
+#cwlVersion: "v1.0"
+
+class: Workflow
+
+requirements:
+  - class: ScatterFeatureRequirement
+  - class: InlineJavascriptRequirement
+    expressionLib:
+    - "var new_ext = function() { var ext=inputs.bai?'.bai':inputs.csi?'.csi':'.bai'; return inputs.input.split('/').slice(-1)[0]+ext; };"
+    - "var prepend = function(array,prefix) {  var file_array = []; for(var i=0; i<array.length; i++){ file_array[i] = prefix + '/' + array[i]; } return file_array; };"
+  - class: StepInputExpressionRequirement
+  - class: MultipleInputFeatureRequirement
+  - class: SubworkflowFeatureRequirement
+
+inputs:
+  - id: read_files
+    type:
+      type: array
+      items: 
+        type: array
+        items: string
+  - id: fastq_batch_size
+    type: int
+  - id: reference_fasta
+    #type: File
+    type: string
+  - id: max_reads
+    type: int
+  - id: chromosomes
+    type:
+      type: array
+      items: string
+  - id: chr_prefix
+    type: string
+  - id: trimmomatic_adapters_file
+    type: string
+  - id: illuminaclip
+    type: string
+  - id: trimmomatic_phred
+    type: string
+  - id: trimmomatic_leading
+    type: int
+  - id: trimmomatic_trailing
+    type: int
+  - id: trimmomatic_crop
+    type: int
+  - id: trimmomatic_headcrop
+    type: int
+  - id: trimmomatic_minlen
+    type: int
+  - id: trimmomatic_avgqual
+    type: int
+  - id: pileometh_ot
+    type: string
+  - id: pileometh_ob
+    type: string
+  - id: pileometh_ctot
+    type: string
+  - id: pileometh_ctob
+    type: string
+  - id: pileometh_not
+    type: string
+  - id: pileometh_nob
+    type: string
+  - id: pileometh_nctot
+    type: string
+  - id: pileometh_nctob
+    type: string
+  - id: temp_dir
+    type: string    
+  - id: trimmomatic_jar_file
+    type: string
+  - id: clean_raw_fastqs
+    type: boolean
+  - id: clean_trimmed_fastqs
+    type: boolean
+  - id: clean_primary_sams
+    type: boolean
+  - id: clean_primary_bams
+    type: boolean
+  - id: clean_chr_bams
+    type: boolean
+  - id: clean_merged_bams
+    type: boolean
+  - id: clean_dup_rm_bams
+    type: boolean 
+#  - id: test_bam
+#    type: File
+#  - id: slidingw
+#    type: string
+#    default: "30"
+#  - id: minl
+#    type: int
+#    default: 20
+
+outputs:
+#  - id: sequence_files_read1
+#    type: 
+#      type: array
+#      items: Any
+#    #source: "#split_read1_files/output"
+#    source: "#adaptor_trimming/output_read1_trimmed_file"
+#      
+#  - id: sequence_files_read2
+#    type: 
+#      type: array
+#      items: Any
+#    #source: "#split_read2_files/output"
+#    source: "#adaptor_trimming/output_read2_trimmed_paired_file"
+#  
+  - id: trimming_report
+    type:
+      type: array
+      items: ['null', File]
+    source: "#adaptor_trimming/output_log_file"
+#      
+#  - id: alignment
+#    type: 
+#      type: array
+#      items: File
+#    source: "#alignment/alignment"
+#    
+  - id: alignment_flagstat
+    type:
+      type: array
+      items: File
+    source: "#flag_stat_aligned/output"
+#    
+##  - id: merged_bam
+##    type: File
+##    source: "#bam_merging/mergeSam_output"
+#  
+#  - id: indexed_bam
+#    type: 
+#      type: array
+#      items: File
+#    source: "#index_bam_file/index"
+#  
+#  - id: duplicate_removed
+#    type: 
+#      type: array
+#      items: File
+#    source: "#duplicates_removal/markDups_output"
+# 
+#  - id: duplicate_removed_flagstat
+#    type:
+#      type: array
+#      items: File
+#    source: "#flag_stat_dup_removed/output"
+#      
+  - id: mbias_file
+    type:
+      type: array
+      items:
+        type: array
+        items: File
+    source: "#mbias_calculation/mbias_file"
+    
+  - id: mbias_file_trimmed
+    type:
+      type: array
+      items:
+        type: array
+        items: File
+    source: "#mbias_calculation_trimmed/mbias_file"
+
+#      
+#  - id: converted_bam
+#    type: 
+#      type: array
+#      items: File
+#    source: "#sam_to_bam/output"
+#              
+#  - id: split_by_chromosome
+#    type:
+#      type: array
+#      items: 
+#        type: array
+#        items: File
+#    source: "#split_by_chromosome/output_bam_files"
+#    
+#  - id: fixed_bams
+#    type: 
+#      type: array
+#      items: 
+#        type: array
+#        items: File
+#    source: "#fix_all_bams/array_of_fixed_bams"
+#    
+#  - id: rearranged_bams
+#    type: 
+#      type: array
+#      items: 
+#        type: array
+#        items: File
+#    source: "#rearrange_bams/bam_arrays_per_chr"
+
+#  - id: merged_bam
+#    type: 
+#      type: array
+#      items: string
+#    source: "#bam_merging/mergeSam_output"
+
+#  - id: methylation_calls_simple
+#    type:
+#      type: array
+#      items: string 
+#    source: "#methylation_calling/methcall_bed"
+
+  - id: methylation_calls
+    type: File
+    source: "#merge_meth_calls/merged_bed_file"
+
+#  - id: lambda_bam_file
+#    type: File
+#    source: "#find_lambda_file/lambda_bam"
+
+#  - id: methylation_calls_lambda
+#    type: string
+#    source: "#methylation_calling_lambda/methcall_bed"
+    
+  - id: bisulfite_conversion_estimation
+    type: File
+    source: "#conversion_estimation_lambda/bisulfite_conversion_file"
+
+steps:
+  - id: prepare_read_files
+    run: { import: wgbs }
+    
+  - id: run_pipeline
+    run: {inport: wgbs-workflow-production}
+    inputs:
+       
+    

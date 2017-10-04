@@ -1,0 +1,32 @@
+#!/usr/bin/env cwl-runner
+
+class: CommandLineTool
+requirements:
+  - class: InlineJavascriptRequirement
+cwlVersion: cwl:draft-3
+
+inputs:
+  - id: split_files
+    type:
+     type: array
+     items: string
+#, inputBinding: { loadContents: true } }
+
+outputs:
+  - id: lambda_bam
+    type: string
+
+#expression: "$({'output': parseInt(inputs.file1.contents)})"
+expression: "${
+            var index = inputs.split_files.length - 1;
+            for(var i=0; i<inputs.split_files.length; i++){ 
+                if(inputs.split_files[i].indexOf('Lambda') !== -1){
+                    index = i;
+                }
+             }
+            var output = {};
+            output['lambda_bam'] = inputs.split_files[index];
+            return output;
+          }"
+
+
