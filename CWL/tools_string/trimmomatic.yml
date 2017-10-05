@@ -32,7 +32,7 @@ inputs:
       position: 1
       shellQuote: false
   - id: trimmomatic_jar_path
-    type: string
+    type: File
     inputBinding:
       position: 2
       prefix: "-jar"
@@ -89,7 +89,7 @@ inputs:
       position: 6
     description: "FASTQ file for read R2 in Paired End mode"
   - id: input_adapters_file
-    type: string
+    type: File
     description: "FASTA file containing adapters, PCR sequences, etc. It is used to search for and remove these sequences in the input FASTQ file(s)"
   - id: illuminaclip
     type: string

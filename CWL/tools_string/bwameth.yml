@@ -50,8 +50,7 @@ inputs:
 #    separate: true
 
 - id: '#reference'
-  type:
-  - string
+  type: File
   label: ''
   description: the reference fasta file location
   inputBinding:

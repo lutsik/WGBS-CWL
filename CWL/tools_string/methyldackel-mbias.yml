@@ -26,7 +26,7 @@ inputs:
 #    position: 3
 
 - id: "reference"
-  type: string
+  type: File
   description: |
     FASTA file with the reference genome
   inputBinding:

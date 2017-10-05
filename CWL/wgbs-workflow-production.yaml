@@ -19,16 +19,16 @@ inputs:
   - id: inp_read1
     type:
       type: array
-      items: string
+      items: File
   - id: inp_read2
     type:
       type: array
-      items: string
+      items: File
   - id: fastq_batch_size
     type: int
   - id: reference_fasta
-    #type: File
-    type: string
+    type: File
+    #! maybe insert secondary files
   - id: max_reads
     type: int
   - id: chromosomes
@@ -40,7 +40,7 @@ inputs:
   - id: lib_type
     type: string
   - id: trimmomatic_adapters_file
-    type: string
+    type: File
   - id: illuminaclip
     type: string
   - id: trimmomatic_phred
@@ -84,7 +84,7 @@ inputs:
   - id: temp_dir
     type: string
   - id: trimmomatic_jar_file
-    type: string
+    type: File
   - id: clean_raw_fastqs
     type: boolean
   - id: clean_trimmed_fastqs
@@ -256,7 +256,7 @@ steps:
 #        valueFrom: $(self)
       - id: suffix
         source: "#inp_read1"
-        valueFrom: _$(inputs.file.substr(inputs.file.lastIndexOf('/')+1,inputs.file.lastIndexOf('.fastq')))_$(inputs.size/1000)k_R1.fastq
+        valueFrom: _$(inputs.file.path.substr(inputs.file.lastIndexOf('/')+1,inputs.file.lastIndexOf('.fastq')))_$(inputs.size/1000)k_R1.fastq
       - {id: max_reads, source: "#max_reads" }
     outputs:
       - {id: output}
@@ -272,7 +272,7 @@ steps:
 #        valueFrom: $(self)
       - id: suffix
         source: "#inp_read2"
-        valueFrom: _$(inputs.file.substr(inputs.file.lastIndexOf('/')+1,inputs.file.lastIndexOf('.fastq')))_$(inputs.size/1000)k_R2.fastq
+        valueFrom: _$(inputs.file.path.substr(inputs.file.lastIndexOf('/')+1,inputs.file.lastIndexOf('.fastq')))_$(inputs.size/1000)k_R1.fastq
       - { id: max_reads, source: "#max_reads" }
     outputs:
       - {id: output}
