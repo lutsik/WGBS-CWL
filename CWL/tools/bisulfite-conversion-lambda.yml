@@ -1,28 +1,24 @@
 #!/usr/bin/env cwl-runner
-cwlVersion: "cwl:draft-3"
+cwlVersion: v1.0
 class: CommandLineTool
 
 requirements:
-  - class: InlineJavascriptRequirement
+- class: InlineJavascriptRequirement
 
 inputs:
-
-
-  - id: input_bed_file
-
+  output_file_name: string
+  input_bed_file:
     type: File
     inputBinding:
-     position: 100000
-  - id: output_file_name
-    type: string
+      position: 100000
 outputs:
-  - id: bisulfite_conversion_file
+  bisulfite_conversion_file:
     type: File
     streamable: true
     outputBinding:
       glob: $(inputs['output_file_name'])
 
-baseCommand: ["awk"]
+baseCommand: [awk]
 stdout: $(inputs['output_file_name'])
 arguments:
  # - valueFrom: "{SUM1 += $4/100; SUM2 +=1} END {print 1-SUM1/SUM2}"
@@ -48,3 +44,4 @@ arguments:
 
 #cat ${SAMPLENAME}.cap.lambda.methylation_results.txt |
 #awk '{SUM1 += $2; SUM2 +=$3}  END {print 1-SUM1/SUM2}' > ${SAMPLENAME}.cap.lambda.conversionrate.txt
+

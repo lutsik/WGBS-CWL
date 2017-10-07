@@ -1,20 +1,21 @@
 #!/usr/bin/env cwl-runner
-cwlVersion: "cwl:draft-3"
+cwlVersion: v1.0
 class: CommandLineTool
 
 requirements:
-  - class: ShellCommandRequirement
+- class: ShellCommandRequirement
 
 inputs:
-- id: "bam_file"
-  type: File
-  description: |
-    the input bam file
-  secondaryFiles:
+  bam_file:
+    type: File
+    secondaryFiles:
     - ^.bai
-  inputBinding:
-    position: 5
+    inputBinding:
+      position: 5
 
+    doc: |
+      the input bam file
+  reference:
 # replaced file with string for efficiency in Toil        
 #- id: "reference"
 #  type: File
@@ -25,65 +26,63 @@ inputs:
 #  inputBinding:
 #    position: 3
 
-- id: "reference"
-  type: File
-  description: |
-    FASTA file with the reference genome
-  inputBinding:
-    position: 4
-            
-- id: "mbiasfile_name"
-  type: string
-  description: |
-    FASTA file 
-  inputBinding:
-    position: 1000000
-    separate: true
-    
-- id: "min_mapq"
-  type: int
-  default: 0
-  description: |
-    min_mapq
-  inputBinding:
-    prefix: "-q"
-    position: 100000
-    separate: true
-    
-- id: "min_phred"
-  type: int
-  default: 1
-  description: |
-    min_phred
-  inputBinding:
-    prefix: "-p"
-    position: 100000
-    separate: true
-    
-- id: "min_depth"
-  type: int
-  default: 1
-  description: |
-    min_depth
-  inputBinding:
-    prefix: "-D"
-    position: 100000
-    separate: true
-    
- 
-outputs:
-- id: "mbias_file"
-  type:
-    type: array
-    items: File
-  outputBinding:
-    glob: "*$(inputs.mbiasfile_name)*"
+    type: File
+    inputBinding:
+      position: 4
 
-baseCommand: ["/ngs_share/tools/PileOMeth/PileOMeth"]
+    doc: |
+      FASTA file with the reference genome
+  min_mapq:
+    type: int
+    default: 0
+    inputBinding:
+      prefix: -q
+      position: 100000
+      separate: true
+
+    doc: |
+      min_mapq
+  mbiasfile_name:
+    type: string
+    inputBinding:
+      position: 1000000
+      separate: true
+
+    doc: "FASTA file \n"
+  min_depth:
+    type: int
+    default: 1
+    inputBinding:
+      prefix: -D
+      position: 100000
+      separate: true
+
+
+    doc: |
+      min_depth
+  min_phred:
+    type: int
+    default: 1
+    inputBinding:
+      prefix: -p
+      position: 100000
+      separate: true
+
+    doc: |
+      min_phred
+outputs:
+  mbias_file:
+    type:
+      type: array
+      items: File
+    outputBinding:
+      glob: '*$(inputs.mbiasfile_name)*'
+baseCommand: [/ngs_share/tools/PileOMeth/PileOMeth]
 stdout: $(inputs.mbiasfile_name).txt
 arguments:
-- valueFrom: "mbias"
+- valueFrom: mbias
   position: 2
-- valueFrom: "--txt"
+- valueFrom: --txt
   position: 3
   shellQuote: false
+

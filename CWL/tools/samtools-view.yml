@@ -177,3 +177,4 @@ outputs:
       glob: $(inputs.output_name)
 
 baseCommand: [samtools, view]
+

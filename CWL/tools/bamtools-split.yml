@@ -1,5 +1,5 @@
 #!/usr/bin/env cwl-runner
-cwlVersion: "cwl:draft-3"
+cwlVersion: v1.0
 class: CommandLineTool
 #sbg:homepage: https://github.com/pezmaster31/bamtools/wiki
 #sbg:validationErrors: []
@@ -89,165 +89,116 @@ class: CommandLineTool
 #sbg:toolkit: BamTools
 #id: https://gcp-api.sbgenomics.com/v2/apps/admin/sbg-public-data/bamtools-split-2-4-0/10/raw/
 inputs:
-- type:
-  - File
-  label: Input BAM file
-  description: The input BAM file.
-  streamable: false
-  id: '#input_bam_file'
-  inputBinding:
-    position: 0
-    prefix: -in
-    separate: true
+  input_bam_file:
+    type:
+    - File
+    label: Input BAM file
+    streamable: false
     #sbg:cmdInclude: true
   #sbg:category: Input & Output
   #sbg:fileTypes: BAM
   #required: true
-  inputBinding:
-    position: 2
-    prefix: "-in"
-    separate: true
-- type:
-  - 'null'
-  - string
-  label: Reference prefix
-  description: Custom prefix for splitting by references. Currently files end with
-    REF_<refName>.bam. This option allows you to replace "REF_" with a prefix of your
-    choosing.
-  streamable: false
-  id: '#ref_prefix'
-  #sbg:category: Input & Output
-  #required: false
-  inputBinding:
-    position: 4
-    prefix: "-refPrefix"
-- type:
-  - 'null'
-  - string
-  label: Tag prefix
-  description: Custom prefix for splitting by tags. Current files end with TAG_<tagname>_<tagvalue>.bam.
-    This option allows you to replace "TAG_" with a prefix of your choosing.
-  streamable: false
-  id: '#tag_prefix'
-  #sbg:category: Input & Output
-  #required: false
-  inputBinding:
-    position: 4
-    prefix: ""
-- type:
-  - 'null'
-  - string
-  label: Tag split
-  description: Splits alignments based on all values of TAG encountered (i.e. -tag
-    RG creates a BAM file for each read group in original BAM file).
-  streamable: false
-  id: '#tag'
+    inputBinding:
+      position: 2
+      prefix: -in
+      separate: true
+    doc: The input BAM file.
+  tag:
+    type: string?
+    label: Tag split
+    streamable: false
+    doc: Splits alignments based on all values of TAG encountered (i.e. -tag RG creates
+      a BAM file for each read group in original BAM file).
+  split_options:
   #sbg:category: Split Options
   #required: false
-- type:
-  - name: split_options
-    symbols:
-    - mapped
-    - paired
-    - reference
-    - tag
-    type: enum
-  label: Split Options
-  description: 'Property upon which the BAM splitting is performed. Warning: Splitting  by
-    tags or reference can output a large number of files.'
-  streamable: false
-  id: '#split_options'
-  #sbg:category: Execution
-  #required: true
+    type:
+    - name: split_options
+      symbols:
+      - mapped
+      - paired
+      - reference
+      - tag
+      type: enum
+    label: Split Options
+    streamable: false
+    doc: 'Property upon which the BAM splitting is performed. Warning: Splitting  by
+      tags or reference can output a large number of files.'
+  ref_prefix:
+    type: string?
+    label: Reference prefix
+    streamable: false
+  #sbg:category: Input & Output
+  #required: false
+    inputBinding:
+      position: 4
+      prefix: -refPrefix
+    doc: Custom prefix for splitting by references. Currently files end with REF_<refName>.bam.
+      This option allows you to replace "REF_" with a prefix of your choosing.
+  tag_prefix:
+    type: string?
+    label: Tag prefix
+    streamable: false
+  #sbg:category: Input & Output
+  #required: false
+    inputBinding:
+      position: 4
+      prefix: ''
+    doc: Custom prefix for splitting by tags. Current files end with TAG_<tagname>_<tagvalue>.bam.
+      This option allows you to replace "TAG_" with a prefix of your choosing.
 outputs:
-- type:
-  - items: File
-    type: array
-  label: Output BAM files
-  description: Output BAM files.
-  streamable: false
-  id: '#output_bam_files'
-  outputBinding:
-    glob: |
-      ${
-        var filepath = inputs.input_bam_file.path;
-        var file_path_sep = filepath.split("/");
-        var filename = file_path_sep[file_path_sep.length-1];
-        var file_dot_sep = filename.split(".bam");
-        var base_name = file_dot_sep.slice(0,1);
-        return base_name + ".*.bam";
-      }
+  output_bam_files:
+    type:
+    - File[]
+    label: Output BAM files
+    streamable: false
+    outputBinding:
+      glob: |
+        ${
+          var filepath = inputs.input_bam_file.path;
+          var file_path_sep = filepath.split("/");
+          var filename = file_path_sep[file_path_sep.length-1];
+          var file_dot_sep = filename.split(".bam");
+          var base_name = file_dot_sep.slice(0,1);
+          return base_name + ".*.bam";
+        }
   #sbg:fileTypes: BAM
-#requirements:
-#- class: ExpressionEngineRequirement
-# id: '#cwl-js-engine'
-#  requirements:
-#    class: DockerRequirement
-#    dockerPull: rabix/js-engine
-#    dockerLoad: ''
-#    dockerFile: ''
-#    dockerImageId: ''
-#    dockerOutputDirectory: ''
-#hints:
-#- class: DockerRequirement
-#  dockerPull: images.sbgenomics.com/markop/bamtools:2.4.0
-#  dockerLoad: ''
-#  dockerFile: ''
-#  dockerImageId: f808163d4cd3
-#  dockerOutputDirectory: ''
-#- class: sbg:CPURequirement
-#  value: 1
-#- class: sbg:MemRequirement
-#  value: 1000
-label: "BamToolsSplit"
-description: |-
+    doc: Output BAM files.
+label: BamToolsSplit
+arguments:
+- valueFrom: |
+    ${
+       var filepath = inputs.input_bam_file.path;
+
+       var file_path_sep = filepath.split("/");
+       var filename = file_path_sep[file_path_sep.length-1];
+
+       var file_dot_sep = filename.split(".");
+       var base_name = file_dot_sep.slice(0,-1).join(".");
+
+       return base_name;
+    }
+  prefix: -stub
+  position: 3
+- valueFrom: "${\n  var line = \"\";\n  \n  if (inputs.split_options == 'mapped'){\n\
+    \    line = line.concat(\"-mapped\");\n  } else if (inputs.split_options == 'paired'){\n\
+    \    line = line.concat(\"-paired\");\n  } else if (inputs.split_options == 'reference'){\n\
+    \    line = line.concat(\"-reference\");\n  } else if (inputs.split_options ==\
+    \ 'tag'){\n      line = line.concat(\"-tag \");\n      line = line.concat(inputs.tag)\n\
+    \      if (inputs.tag_prefix){\n          line = line.concat(\" -tagPrefix \"\
+    );\n          line = line.concat(inputs.tag_prefix);\n      }\n  }\n  return line;\n\
+    }\n"
+  position: 4
+  separate: true
+stdin: ''
+stdout: ''
+successCodes: []
+temporaryFailCodes: []
+baseCommand: [bamtools, split]
+doc: |-
   BamTools Split splits a BAM file based on a user-specified property. It creates a new BAM output file for each value found.
 
   **Warning:** Splitting  by tags or reference can output a large number of files.
 
   **Common issues:** Splitting by tag can produce no output if the selected tag doesn't exist in the BAM file.
-class: CommandLineTool
-arguments: []
-stdin: ''
-stdout: ''
-successCodes: []
-temporaryFailCodes: []
 
-baseCommand: ["bamtools", "split"]
-arguments:
-  - valueFrom: |
-      ${
-         var filepath = inputs.input_bam_file.path;
-
-         var file_path_sep = filepath.split("/");
-         var filename = file_path_sep[file_path_sep.length-1];
-
-         var file_dot_sep = filename.split(".");
-         var base_name = file_dot_sep.slice(0,-1).join(".");
-
-         return base_name;
-      }
-    prefix: -stub
-    position: 3
-  - valueFrom: |
-      ${
-        var line = "";
-        
-        if (inputs.split_options == 'mapped'){
-          line = line.concat("-mapped");
-        } else if (inputs.split_options == 'paired'){
-          line = line.concat("-paired");
-        } else if (inputs.split_options == 'reference'){
-          line = line.concat("-reference");
-        } else if (inputs.split_options == 'tag'){
-            line = line.concat("-tag ");
-            line = line.concat(inputs.tag)
-            if (inputs.tag_prefix){
-                line = line.concat(" -tagPrefix ");
-                line = line.concat(inputs.tag_prefix);
-            }
-        }
-        return line;
-      }
-    position: 4
-    separate: true

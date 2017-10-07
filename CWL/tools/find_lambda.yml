@@ -2,33 +2,25 @@
 
 class: ExpressionTool
 requirements:
-  - class: InlineJavascriptRequirement
-cwlVersion: cwl:draft-3
+- class: InlineJavascriptRequirement
+cwlVersion: v1.0
 
 inputs:
-  - id: split_files
-    type:
-     type: array
+- id: split_files
+  type:
+    type: array
 
-     items: File
+    items: File
 #, inputBinding: { loadContents: true } }
 
 outputs:
-  - id: lambda_bam
+- id: lambda_bam
 
-    type: File
+  type: File
 
 #expression: "$({'output': parseInt(inputs.file1.contents)})"
-expression: "${
-            var index = inputs.split_files.length - 1;
-            for(var i=0; i<inputs.split_files.length; i++){ 
-                if(inputs.split_files[i].basename.indexOf('Lambda') !== -1){
-                    index = i;
-                }
-             }
-            var output = {};
-            output['lambda_bam'] = inputs.split_files[index];
-            return output;
-          }"
-
+expression: ${ var index = inputs.split_files.length - 1; for(var i=0; i<inputs.split_files.length;
+  i++){ if(inputs.split_files[i].basename.indexOf('Lambda') !== -1){ index = i; }
+  } var output = {}; output['lambda_bam'] = inputs.split_files[index]; return output;
+  }
 

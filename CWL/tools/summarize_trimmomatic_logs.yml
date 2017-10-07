@@ -1,5 +1,5 @@
 #!/usr/bin/env cwl-runner
-cwlVersion: "cwl:draft-3"
+cwlVersion: v1.0
 class: CommandLineTool
 #
 #requirements:
@@ -8,55 +8,54 @@ class: CommandLineTool
 #- class: InlineJavascriptRequirement
 
 inputs:
-- id: "file_dir"
-  type: string
+  file_dir: string
+  suffix:
+    type: string
+    inputBinding:
+      prefix: --additional-suffix=
+      position: 2
+      separate: false
+
+    doc: |
+      a suffix for chuncks
+  file:
   #inputBinding:
   #  position: 1
 
 
-- id: "file"
-  type: File
-  description: |
-    the input log file
-  inputBinding:
-    position: 3
+    type: File
+    inputBinding:
+      position: 3
 
-- id: "size"
-  type: int
-  description: |
-    size of a chunck in lines
-  inputBinding:
-    prefix: --lines=
-    position: 1
-    separate: False
+    doc: |
+      the input log file
+  size:
+    type: int
+    inputBinding:
+      prefix: --lines=
+      position: 1
+      separate: false
 
-    
-- id: "suffix"
-  type: string
-  description: |
-    a suffix for chuncks
-  inputBinding:
-    prefix: --additional-suffix=
-    position: 2
-    separate: False
-  
+
+    doc: |
+      size of a chunck in lines
 outputs:
-- id: "output"
-  type:
-    type: array
-    items: File
-  outputBinding:
-    glob: "*$(inputs.suffix)*"
-
-baseCommand: ["cd"]
+  output:
+    type:
+      type: array
+      items: File
+    outputBinding:
+      glob: '*$(inputs.suffix)*'
+baseCommand: [cd]
 arguments:
 - valueFrom: $(inputs.file_dir)
   position: 1
-- valueFrom: ";"
+- valueFrom: ;
   position: 2
-- valueFrom: "cat"
+- valueFrom: cat
   position: 100
-- valueFrom: ">"
+- valueFrom: '>'
   position: 1001
 - valueFrom: $(inputs.file_dir + "/" + inputs['alignment_filename']).sam
   position: 1002
+

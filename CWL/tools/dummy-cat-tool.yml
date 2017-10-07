@@ -1,5 +1,5 @@
 #!/usr/bin/env cwl-runner
-cwlVersion: "cwl:draft-3"
+cwlVersion: v1.0
 class: CommandLineTool
 
 
@@ -7,24 +7,23 @@ requirements:
 - class: InlineJavascriptRequirement
 
 inputs:
-  - id: "#inputFileName_mergedSam"
+  inputFileName_mergedSam:
     type:
-     type: array
-     items: File
+      type: array
+      items: File
     inputBinding:
-     position: 100
+      position: 100
 
-  - id: "#outputFileName_mergedSam"
+  outputFileName_mergedSam:
     type: string
-    description: >
-      SAM or BAM file to write merged result to Required
-#    inputBinding:
-#      position: 4
-#      prefix: "OUTPUT="
+    doc: 'SAM or BAM file to write merged result to Required
+
+      '
 outputs:
-  - id: mergeSam_output
+  mergeSam_output:
     type: File
     outputBinding:
       glob: $(inputs.outputFileName_mergedSam)
-baseCommand: "cat"
+baseCommand: cat
 stdout: $(inputs.outputFileName_mergedSam)
+

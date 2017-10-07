@@ -1,6 +1,6 @@
 class: DockerRequirement
 dockerPull: dukegcb/trimmomatic
-dockerFile: |
+dockerFile: |-
   #################################################################
   # Dockerfile
   #
@@ -23,3 +23,4 @@ dockerFile: |
     trimmomatic="0.32+dfsg-1"
 
   CMD ["/usr/bin/java", "-jar", "/usr/share/java/trimmomatic.jar"]
+

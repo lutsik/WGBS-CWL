@@ -1,22 +1,54 @@
 #!/usr/bin/env cwl-runner
-cwlVersion: "cwl:draft-3"
+cwlVersion: v1.0
 class: CommandLineTool
 
 requirements:
-  - class: ShellCommandRequirement
+- class: ShellCommandRequirement
 
 
 inputs:
-- id: file_dir
-  type: string
+  nOB:
+    type: string
+    inputBinding:
+      position: 100000
+      prefix: --nOB
+      separate: true
 
-- id: "bam_file"
-  type: string
-  description: |
-    the input bam file
-  inputBinding:
-    position: 3
+    doc: "nOB \n"
+  OT:
+    type: string
+    inputBinding:
+      position: 100000
+      prefix: --OT
+      separate: true
 
+    doc: "OT \n"
+  CTOB:
+    type: string
+    inputBinding:
+      position: 100000
+      prefix: --CTOB
+      separate: true
+
+    doc: "CTOB \n"
+  min_depth:
+    type: int
+    default: 1
+    inputBinding:
+      prefix: --minDepth
+      position: 100000
+      separate: true
+
+    doc: "min_depth \n"
+  OB:
+    type: string
+    inputBinding:
+      position: 100000
+      prefix: --OB
+      separate: true
+
+    doc: "OB \n"
+  reference:
 #- id: "reference"
 #  type: File
 #  description: |
@@ -26,177 +58,115 @@ inputs:
 #  inputBinding:
 #    position: 2
 
-- id: "reference"
-  type: string
-  description: |
-    FASTA file with the reference genome
-  inputBinding:
-    position: 2
-    
-- id: "bedfile_name"
-  type: string
-  description: |
-    FASTA file 
-  inputBinding:
-    position: 3
-    prefix: "-o"
-    separate: true
-    
-- id: "min_mapq"
-  type: int
-  default: 0
-  description: |
-    min_mapq 
-  inputBinding:
-    prefix: "-q"
-    position: 100000
-    separate: true
-    
-- id: "min_phred"
-  type: int
-  default: 1
-  description: |
-    min_phred 
-  inputBinding:
-    prefix: "-p"
-    position: 100000
-    separate: true
-    
-- id: "min_depth"
-  type: int
-  default: 1
-  description: |
-    min_depth 
-  inputBinding:
-    prefix: "--minDepth"
-    position: 100000
-    separate: true
-    
-- id: "OT"
-  type: string
-  description: |
-    OT 
-  inputBinding:
-    position: 100000
-    prefix: "--OT"
-    separate: true    
-    
-- id: "OB"
-  type: string
-  description: |
-    OB 
-  inputBinding:
-    position: 100000
-    prefix: "--OB"
-    separate: true
-    
-- id: "CTOT"
-  type: string
-  description: |
-    CTOT 
-  inputBinding:
-    position: 100000
-    prefix: "--CTOT"
-    separate: true
-    
-- id: "CTOB"
-  type: string
-  description: |
-    CTOB 
-  inputBinding:
-    position: 100000
-    prefix: "--CTOB"
-    separate: true
+    type: string
+    inputBinding:
+      position: 2
 
-- id: "nOT"
-  type: string
-  description: |
-    nOT 
-  inputBinding:
-    position: 100000
-    prefix: "--nOT"
-    separate: true    
-    
-- id: "nOB"
-  type: string
-  description: |
-    nOB 
-  inputBinding:
-    position: 100000
-    prefix: "--nOB"
-    separate: true
-    
-- id: "nCTOT"
-  type: string
-  description: |
-    nCTOT 
-  inputBinding:
-    position: 100000
-    prefix: "--nCTOT"
-    separate: true
-    
-- id: "nCTOB"
-  type: string
-  description: |
-    nCTOB 
-  inputBinding:
-    position: 100000
-    prefix: "--nCTOB"
-    separate: true    
-        
-                
-- id: "noCG"
-  type: boolean
-#- id: "context"
-#  type: string
-    
+    doc: |
+      FASTA file with the reference genome
+  noCG: boolean
+  nOT:
+    type: string
+    inputBinding:
+      position: 100000
+      prefix: --nOT
+      separate: true
+
+    doc: "nOT \n"
+  nCTOT:
+    type: string
+    inputBinding:
+      position: 100000
+      prefix: --nCTOT
+      separate: true
+
+    doc: "nCTOT \n"
+  min_mapq:
+    type: int
+    default: 0
+    inputBinding:
+      prefix: -q
+      position: 100000
+      separate: true
+
+    doc: "min_mapq \n"
+  file_dir: string
+  bam_file:
+    type: string
+    inputBinding:
+      position: 3
+
+    doc: |
+      the input bam file
+  min_phred:
+    type: int
+    default: 1
+    inputBinding:
+      prefix: -p
+      position: 100000
+      separate: true
+
+    doc: "min_phred \n"
+  bedfile_name:
+    type: string
+    inputBinding:
+      position: 3
+      prefix: -o
+      separate: true
+
+    doc: "FASTA file \n"
+  nCTOB:
+    type: string
+    inputBinding:
+      position: 100000
+      prefix: --nCTOB
+      separate: true
+
+
+    doc: "nCTOB \n"
+  CTOT:
+    type: string
+    inputBinding:
+      position: 100000
+      prefix: --CTOT
+      separate: true
+
+    doc: "CTOT \n"
 outputs:
-- id: "methcall_bed"
-  type: string
-  outputBinding:
-    glob: "meth_calls"
-    loadContents: true
-    outputEval: $(self[0].contents.split("\n")[0])
+  methcall_bed:
+    type: string
+    outputBinding:
+      glob: meth_calls
+      loadContents: true
+      outputEval: $(self[0].contents.split("\n")[0])
 
-#baseCommand: ["/ngs_share/tools/PileOMeth_dev/PileOMeth"]
 baseCommand: cd
 arguments:
 - valueFrom: $(inputs.file_dir)
   position: -2
-- valueFrom: ";"
+- valueFrom: ;
   position: -1
-- valueFrom: "/ngs_share/tools/PileOMeth_dev/PileOMeth"
-  position: 1 
-- valueFrom: "extract"
+- valueFrom: /ngs_share/tools/PileOMeth_dev/PileOMeth
+  position: 1
+- valueFrom: extract
   position: 2
-- valueFrom: ${
-      if(inputs.noCG){
-        return "--noCpG";
-      }else{
-        return null;
-      }
-    }
+- valueFrom: ${ if(inputs.noCG){ return "--noCpG"; }else{ return null; } }
   position: 10000
-- valueFrom: ${
-      if(inputs.noCG){
-        return "--CHH";
-      }else{
-        return null;
-      }
-    }
+- valueFrom: ${ if(inputs.noCG){ return "--CHH"; }else{ return null; } }
   position: 10001
-- valueFrom: ";"
+- valueFrom: ;
   position: 1000000
-- valueFrom: "ls"
+- valueFrom: ls
   position: 1000001
-- valueFrom: "*bedGraph"
+- valueFrom: '*bedGraph'
   position: 1000002
   shellQuote: false
-- valueFrom: "|"
+- valueFrom: '|'
   position: 1000003
-- valueFrom: "grep"
+- valueFrom: grep
   position: 1000004
 - valueFrom: $(inputs.bedfile_name)
   position: 1000005
 
-stdout: "meth_calls"
+stdout: meth_calls
+

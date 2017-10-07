@@ -1,41 +1,40 @@
-cwlVersion: "cwl:draft-3"
-
+cwlVersion: v1.0
 class: CommandLineTool
 
 hints:
-  - class: ResourceRequirement
-    coresMin: 1
-    ramMin: 10000
+- class: ResourceRequirement
+  coresMin: 1
+  ramMin: 10000
 
 inputs:
-  - id: "java_arg"
-    type: string
-    default: "-Xmx4g"
-    inputBinding:
-      position: 1  
-  
-  - id: "#inputBAMFile"
-    description: One or more input SAM or BAM files to fix
+  inputBAMFile:
     type: File
     inputBinding:
       position: 4
-      
-  - id: "#outputFileName"
+
+    doc: One or more input SAM or BAM files to fix
+  java_arg:
+    type: string
+    default: -Xmx4g
+    inputBinding:
+      position: 1
+
+  outputFileName:
     type: string
     inputBinding:
-      position: 5  
-  
+      position: 5
+
 outputs:
-  - id: "fixBam_output"
+  fixBam_output:
     type: File
-    outputBinding: 
+    outputBinding:
       glob: $(inputs.outputFileName)
 
-baseCommand: ["java"]
+baseCommand: [java]
+arguments:
+- valueFrom: /ngs_share/tools/htsjdk/build/libs/htsjdk-2.7.0-3-g1c66107-SNAPSHOT-all.jar
+  position: 2
+  prefix: -cp
+- valueFrom: htsjdk.samtools.FixBAMFile
+  position: 3
 
-arguments: 
-  - valueFrom: "/ngs_share/tools/htsjdk/build/libs/htsjdk-2.7.0-3-g1c66107-SNAPSHOT-all.jar"
-    position: 2
-    prefix: "-cp"
-  - valueFrom: "htsjdk.samtools.FixBAMFile"
-    position: 3

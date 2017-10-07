@@ -1,104 +1,86 @@
 #!/usr/bin/env cwl-runner
-cwlVersion: "cwl:draft-3"
+cwlVersion: v1.0
 id: '#bwameth'
 label: bwameth
 class: CommandLineTool
 
 requirements:
-  - class: ShellCommandRequirement
+- class: ShellCommandRequirement
 
 hints:
-  - class: ResourceRequirement
-    coresMin: 1
-    ramMin: 28000
+- class: ResourceRequirement
+  coresMin: 1
+  ramMin: 28000
 #    outdirMin: 512000
 #    description: "the process requires at least 15G of RAM"
-    
-
 inputs:
-- id: "file_dir"
-  type: string
+  read2:
+    type:
+    - string
+    label: ''
+  #streamable: false
+    inputBinding:
+      position: 104
+      separate: true
+    doc: the input fastq file with the second mate
+  alignment_filename: string
+  reference:
+    type: File
+    label: ''
+    inputBinding:
+      position: 102
+      prefix: --reference
+      valueFrom: $(self.path.replace(/\.fa/i,"" ))
+      separate: true
+
+    doc: the reference fasta file location
+  lib_type:
+    type: string
+    doc: "Library type, directional or non-directional    \n"
+  file_dir: string
+  threads:
   #inputBinding:
   #  position: 1
-- id: '#threads'
-  type:
-  - 'null'
-  - int
-  label: ''
-  description: ''
+    type: int?
+    label: ''
   #streamable: false
-  inputBinding:
-    position: 101
-    prefix: --threads
-    separate: true
+    inputBinding:
+      position: 101
+      prefix: --threads
+      separate: true
 
-- id: '#reference'
-  type: File
-  label: ''
-  description: the reference fasta file location
-  inputBinding:
-    position: 102
-    prefix: --reference
-    valueFrom: $(self.path.replace(/\.fa/i,"" ))
-    separate: true
-    
-- id: '#lib_type'
-  type: string
-  description: |
-    Library type, directional or non-directional    
-
-- id: '#read1'
-  type:
-  - string
-  label: ''
-  description: the input fastq file with the first mate
-  inputBinding:
-    position: 103
-    separate: true
-- id: '#read2'
-  type:
-  - string
-  label: ''
-  description: the input fastq file with the second mate
-  #streamable: false
-  inputBinding:
-    position: 104
-    separate: true
-  #required: false
-- id: '#alignment_filename'
-  type: string
-  
+    doc: ''
+  read1:
+    type:
+    - string
+    label: ''
+    inputBinding:
+      position: 103
+      separate: true
+    doc: the input fastq file with the first mate
 outputs:
-- id: '#alignment'
-  type: string
+  alignment:
+    type: string
   #streamable: true
-  outputBinding:
-   outputEval: ${return inputs.file_dir + "/" + inputs['alignment_filename'] + ".sam";}
-#- id: '#alignment_stderr'
-#  type: File
-#  outputBinding:
-#   glob: $(inputs['alignment_filename']).log
-
+    outputBinding:
+      outputEval: ${return inputs.file_dir + "/" + inputs['alignment_filename'] +
+        ".sam";}
 baseCommand: cd
 arguments:
 - valueFrom: $(inputs.file_dir)
   position: 1
-- valueFrom: ";"
+- valueFrom: ;
   position: 2
-- valueFrom: "bwameth.py"
+- valueFrom: bwameth.py
   position: 100
-- valueFrom: ${
-      if(inputs.lib_type=="directional"){
-        return null;
-      }else{
-        return "--non-directional";
-      }
-    }
+- valueFrom: ${ if(inputs.lib_type=="directional"){ return null; }else{ return "--non-directional";
+    } }
   position: 200
-- valueFrom: ">"
+- valueFrom: '>'
   position: 1001
 - valueFrom: $(inputs.file_dir + "/" + inputs['alignment_filename']).sam
   position: 1002
 
 #stdout: $(inputs.file_dir + "/" + inputs['alignment_filename']).sam
 #stderr: $(inputs['alignment_filename']).log
+
