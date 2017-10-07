@@ -1,8 +1,8 @@
 inp_read1: [
-   {class: File, path: "/ngs_share/scratch/pavlo/benchmark/encode_chr22_test/data/chr22_10k_1.fastq.gz"}
+   {class: File, path: "/ngs_share/scratch/breuerk/test_data/chr22_10k_1.fastq.gz"}
    ]
 inp_read2: [
-   {class: File, path: "/ngs_share/scratch/pavlo/benchmark/encode_chr22_test/data/chr22_10k_2.fastq.gz"}
+   {class: File, path: "/ngs_share/scratch/breuerk/test_data/chr22_10k_2.fastq.gz"}
    ]
 reference_fasta: {class: File, path: /ngs_share/data/genomes/Hsapiens/GRCh37/bwameth/GRCh37.lambda.fa}
 chromosomes: [ 'chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', 'chr9', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15', 'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21', 'chr22', 'chrX', 'chrY', 'MT','Lambda' ]
@@ -32,8 +32,8 @@ pileometh_not: "10,10,10,10"
 pileometh_nob: "10,10,10,10"
 pileometh_nctot: "10,10,10,10"
 pileometh_nctob: "10,10,10,10"
-analysis_dir: "/ngs_share/pipeline_test/wgbs_small_test"
-temp_dir: "/ngs_share/pipeline_test/wgbs_small_test/files"
+analysis_dir: "/ngs_share/scratch/breuerk/test_cwl/WBGS_tmp"
+temp_dir: "/ngs_share/scratch/breuerk/test_cwl/WBGS_tmp/Files"
 clean_raw_fastqs: false
 clean_trimmed_fastqs: false
 clean_primary_sams: false

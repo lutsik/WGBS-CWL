@@ -18,10 +18,8 @@ requirements:
   - class: ShellCommandRequirement
 
 inputs:
-  - id: "file_dir"
-    type: string
   - id: "#input_bam_file"
-    type: string
+    type: File
     description: "Aligned BAM file to filter"
     inputBinding:
       position: 10
@@ -30,27 +28,10 @@ inputs:
     default: ".flagStat"
 outputs:
   - id: "#output"
-    type: string
+    type: File
     description: "Samtools Flagstat report file"
     outputBinding:
-      outputEval: $(inputs.file_dir + "/" + inputs.input_bam_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "") + inputs.output_suffix)
+      glob: $(inputs.input_bam_file.path.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "") + inputs.output_suffix)
 
-baseCommand: cd
-arguments:
-- valueFrom: $(inputs.file_dir)
-  position: 1
-- valueFrom: ";"
-  position: 2
-- valueFrom: "samtools"
-  position: 3
-- valueFrom: "flagstat"
-  position: 4
-- valueFrom: ">"
-  position: 5
-- valueFrom: $(inputs.file_dir + "/" + inputs.input_bam_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "") + inputs.output_suffix)
-  position: 6
-#stdout: $(inputs.input_bam_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "") + inputs.output_suffix)
-#arguments:
-#  - valueFrom: " | head -n1 | cut -f 1 -d ' '"
-#    position: 10000
-#    shellQuote: False
+baseCommand: ["samtools", "flagstat"]
+stdout: $(inputs.input_bam_file.path.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, "") + inputs.output_suffix)

@@ -11,14 +11,14 @@ inputs:
       type: array
       items:
         type: array
-        items: string
+        items: File
 
 outputs:
   - id: flattened_fastq_array
     type:
       type: array
-      items: string
-       
+      items: File
+        
 expression: "${
 
             var rearranged = [];

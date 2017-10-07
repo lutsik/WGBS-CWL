@@ -6,14 +6,15 @@ requirements:
   - class: InlineJavascriptRequirement
 
 inputs:
-#  - id: file_dir
-#    type: string
+
+
   - id: input_bed_files
     type:
      type: array
-     items: string
-#    inputBinding:
-#     position: 100000
+
+     items: File
+    inputBinding:
+     position: 100000
   - id: output_file_name
     type: string
 outputs:
@@ -31,8 +32,8 @@ arguments:
     position: 1
   - valueFrom: "-q"
     position: 2
-  - valueFrom: $(inputs.input_bed_files)
-    position: 100000
+
+
 #  - valueFrom: |
 #      ${
 #          var file_list = '';

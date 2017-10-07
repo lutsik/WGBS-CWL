@@ -100,7 +100,7 @@ inputs:
   - id: "#inputFileName_mergedSam"
     type:
       type: array
-      items: string
+      items: File
       inputBinding: { prefix: "INPUT=" } 
     description: >
       SAM or BAM input file Default value null. This option must be specified at least 1 times
@@ -139,7 +139,7 @@ inputs:
       prefix: "COMMENT="
 
   - id: "#tmpdir"
-    type: string
+    type: ["null", string]
     description: >
       Default value null. This option may be specified 0 or more times.
     inputBinding:
@@ -157,9 +157,9 @@ inputs:
 
 outputs:
   - id: "#mergeSam_output"
-    type: string
+    type: File
     outputBinding: 
-      outputEval: $(inputs.outputFileName_mergedSam)
+      glob: $(inputs.outputFileName_mergedSam)
         
 arguments: 
 

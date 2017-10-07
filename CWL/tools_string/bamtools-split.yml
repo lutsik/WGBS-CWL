@@ -1,10 +1,6 @@
 #!/usr/bin/env cwl-runner
 cwlVersion: "cwl:draft-3"
 class: CommandLineTool
-
-requirements:
-  - class: ShellCommandRequirement
-
 #sbg:homepage: https://github.com/pezmaster31/bamtools/wiki
 #sbg:validationErrors: []
 #sbg:sbgMaintained: false
@@ -93,10 +89,8 @@ requirements:
 #sbg:toolkit: BamTools
 #id: https://gcp-api.sbgenomics.com/v2/apps/admin/sbg-public-data/bamtools-split-2-4-0/10/raw/
 inputs:
-- id: "file_dir"
-  type: string
 - type:
-  - string
+  - File
   label: Input BAM file
   description: The input BAM file.
   streamable: false
@@ -167,16 +161,22 @@ inputs:
   #required: true
 outputs:
 - type:
-  - items: string
+  - items: File
     type: array
   label: Output BAM files
   description: Output BAM files.
   streamable: false
   id: '#output_bam_files'
   outputBinding:
-    glob: "split_chr_files"
-    loadContents: true
-    outputEval: $(self[0].contents.split("\n").filter(function(n){ return n != "" }))
+    glob: |
+      ${
+        var filepath = inputs.input_bam_file.path;
+        var file_path_sep = filepath.split("/");
+        var filename = file_path_sep[file_path_sep.length-1];
+        var file_dot_sep = filename.split(".bam");
+        var base_name = file_dot_sep.slice(0,1);
+        return base_name + ".*.bam";
+      }
   #sbg:fileTypes: BAM
 #requirements:
 #- class: ExpressionEngineRequirement
@@ -213,24 +213,18 @@ stdout: ''
 successCodes: []
 temporaryFailCodes: []
 
-#baseCommand: ["bamtools", "split"]
-baseCommand: "cd"
+baseCommand: ["bamtools", "split"]
 arguments:
-  - valueFrom: $(inputs.file_dir)
-    position: -4
-  - valueFrom: ";"
-    position: -3
-  - valueFrom: "bamtools"
-    position: -2 
-  - valueFrom: "split"
-    position: -1
   - valueFrom: |
       ${
-         var filepath = inputs.input_bam_file;
+         var filepath = inputs.input_bam_file.path;
+
          var file_path_sep = filepath.split("/");
          var filename = file_path_sep[file_path_sep.length-1];
+
          var file_dot_sep = filename.split(".");
          var base_name = file_dot_sep.slice(0,-1).join(".");
+
          return base_name;
       }
     prefix: -stub
@@ -257,25 +251,3 @@ arguments:
       }
     position: 4
     separate: true
-  - valueFrom: ";"
-    position: 100
-  - valueFrom: "ls"
-    position: 1000
-  - valueFrom: "-1"
-    position: 1001
-  - valueFrom: "|"
-    position: 1002
-  - valueFrom: "grep"
-    position: 1003
-  - valueFrom: ${
-        var filepath = inputs.input_bam_file;
-        var file_path_sep = filepath.split("/");
-        var filename = file_path_sep[file_path_sep.length-1];
-        var file_dot_sep = filename.split(".bam");
-        var base_name = file_dot_sep.slice(0,1);
-        return base_name + "." + inputs.ref_prefix +".*.bam"; 
-     }
-    position: 1004
-
-stdout: "split_chr_files"
-  

@@ -8,8 +8,6 @@ hints:
     ramMin: 10000
 
 inputs:
-  - id: "file_dir"
-    type: string
   - id: "java_arg"
     type: string
     default: "-Xmx4g"
@@ -18,20 +16,20 @@ inputs:
   
   - id: "#inputBAMFile"
     description: One or more input SAM or BAM files to fix
-    type: string
-#    inputBinding:
-#      position: 4
+    type: File
+    inputBinding:
+      position: 4
       
   - id: "#outputFileName"
     type: string
-#    inputBinding:
-#      position: 5  
+    inputBinding:
+      position: 5  
   
 outputs:
   - id: "fixBam_output"
-    type: string
+    type: File
     outputBinding: 
-      outputEval: $(inputs.file_dir + '/' + inputs.outputFileName)
+      glob: $(inputs.outputFileName)
 
 baseCommand: ["java"]
 
@@ -41,7 +39,3 @@ arguments:
     prefix: "-cp"
   - valueFrom: "htsjdk.samtools.FixBAMFile"
     position: 3
-  - valueFrom: $(inputs.file_dir + '/' + inputs.inputBAMFile)
-    position: 4
-  - valueFrom: $(inputs.file_dir + '/' + inputs.outputFileName)
-    position: 5

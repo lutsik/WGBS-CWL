@@ -7,7 +7,7 @@ requirements:
   - class: ScatterFeatureRequirement
   - class: InlineJavascriptRequirement
     expressionLib:
-    - "var new_ext = function() { var ext=inputs.bai?'.bai':inputs.csi?'.csi':'.bai'; return inputs.input.split('/').slice(-1)[0]+ext; };"
+    - "var new_ext = function() { var ext=inputs.bai?'.bai':inputs.csi?'.csi':'.bai'; return inputs.input.path.split('/').slice(-1)[0]+ext; };"
     - "var prepend = function(array,prefix) {  var file_array = []; for(var i=0; i<array.length; i++){ file_array[i] = prefix + '/' + array[i]; } return file_array; };"
   - class: StepInputExpressionRequirement
   - class: MultipleInputFeatureRequirement
@@ -28,6 +28,14 @@ inputs:
     type: int
   - id: reference_fasta
     type: File
+    secondaryFiles:
+      - .bwameth.c2t
+      - .bwameth.c2t.amb
+      - .bwameth.c2t.ann
+      - .bwameth.c2t.bwt
+      - .bwameth.c2t.pac
+      - .bwameth.c2t.sa
+      - .fai
     #! maybe insert secondary files
   - id: max_reads
     type: int
@@ -138,7 +146,7 @@ outputs:
   - id: alignment_flagstat
     type:
       type: array
-      items: string
+      items: File
     source: "#flag_stat_aligned/output"
 #    
 ##  - id: merged_bam
@@ -160,13 +168,13 @@ outputs:
   - id: duplicate_removed_flagstat
     type:
       type: array
-      items: string
+      items: File
     source: "#flag_stat_dup_removed/output"
 #      
   - id: insert_size_metrics
     type:
       type: array
-      items: string
+      items: File
     source: "#insert_size_dist/insertSize_output"
     
   - id: mbias_file
@@ -250,13 +258,11 @@ steps:
     scatter: "#split_read1_files/file"
     inputs:
       - {id: file, source: "#inp_read1" }
-      - {id: file_dir, source: "#temp_dir" }
       - id: size
         source: "#fastq_batch_size"
-#        valueFrom: $(self)
       - id: suffix
         source: "#inp_read1"
-        valueFrom: _$(inputs.file.path.substr(inputs.file.lastIndexOf('/')+1,inputs.file.lastIndexOf('.fastq')))_$(inputs.size/1000)k_R1.fastq
+        valueFrom: _$(inputs.file.basename.substr(0,inputs.file.basename.lastIndexOf('.fastq')))_$(inputs.size/1000)k_R1.fastq
       - {id: max_reads, source: "#max_reads" }
     outputs:
       - {id: output}
@@ -266,13 +272,11 @@ steps:
     scatter: "#split_read2_files/file"
     inputs:
       - {id: file, source: "#inp_read2"}
-      - {id: file_dir, source: "#temp_dir"}
       - id: size
         source: "#fastq_batch_size"
-#        valueFrom: $(self)
       - id: suffix
         source: "#inp_read2"
-        valueFrom: _$(inputs.file.path.substr(inputs.file.lastIndexOf('/')+1,inputs.file.lastIndexOf('.fastq')))_$(inputs.size/1000)k_R1.fastq
+        valueFrom: _$(inputs.file.basename.substr(0,inputs.file.basename.lastIndexOf('.fastq')))_$(inputs.size/1000)k_R1.fastq
       - { id: max_reads, source: "#max_reads" }
     outputs:
       - {id: output}
@@ -296,7 +300,6 @@ steps:
     scatter: [ "#adaptor_trimming/input_read1_fastq_file", "#adaptor_trimming/input_read2_fastq_file" ]
     scatterMethod: 'dotproduct'
     inputs:
-      - {id: file_dir, source: "#temp_dir"}
       - { id: input_read1_fastq_file, source: "#flatten1/flattened_fastq_array" }
       - { id: input_read2_fastq_file, source: "#flatten2/flattened_fastq_array" } 
       - { id: java_opts, default: "-XX:-UseCompressedClassPointers -Xmx3000M -verbose"}
@@ -315,31 +318,11 @@ steps:
       - { id: nthreads, default: 10}
       - id: log_filename
         source: "#flatten1/flattened_fastq_array" 
-        valueFrom: $(inputs.input_read1_fastq_file.substr(0, inputs.input_read1_fastq_file.lastIndexOf('.')))_trimming.log
+        valueFrom: $(inputs.input_read1_fastq_file.basename.substr(0, inputs.input_read1_fastq_file.basename.lastIndexOf('.')))_trimming.log
     outputs:
       - { id: output_read1_trimmed_file }
       - { id: output_read2_trimmed_paired_file }
       - { id: output_log_file }
-
-  - id: clean_raw_fastqs_1
-    run: "tools_string/cleanup.yml"
-    inputs:
-      - { id: files, source: "#flatten1/flattened_fastq_array" }
-      - { id: data_dir, source: "#temp_dir"}
-      - { id: do_clean, source: "#clean_raw_fastqs"}
-      - { id: previous_step, source: "#adaptor_trimming/output_log_file" }
-    outputs:
-      - { id: output }
-
-  - id: clean_raw_fastqs_2
-    run: "tools_string/cleanup.yml"
-    inputs:
-      - { id: files, source: "#flatten2/flattened_fastq_array" }
-      - { id: data_dir, source: "#temp_dir"}
-      - { id: do_clean, source: "#clean_raw_fastqs"}
-      - { id: previous_step, source: "#adaptor_trimming/output_log_file" }
-    outputs:
-      - { id: output } 
  
   - id: alignment
     run: "tools_string/bwameth.yml"
@@ -347,49 +330,23 @@ steps:
     scatterMethod: 'dotproduct'
     inputs:
      # - { id: threads, default: '1'}
-      - { id: file_dir, source: "#temp_dir"}
       - { id: reference, source: "#reference_fasta" }
       - { id: read1, source: "#adaptor_trimming/output_read1_trimmed_file" }
       - { id: read2, source: "#adaptor_trimming/output_read2_trimmed_paired_file" }
       - id: alignment_filename
         source: "#adaptor_trimming/output_read1_trimmed_file"
-        valueFrom: $(inputs.read1.substr(0, inputs.read1.lastIndexOf('.')))
+        valueFrom: $(inputs.read1.basename.substr(0, inputs.read1.basename.lastIndexOf('.')))
         #valueFrom: $(self.basename + ".sam")
-      - { id: cleanup_check1, source: "#clean_raw_fastqs_1/output" }
-      - { id: cleanup_check2, source: "#clean_raw_fastqs_2/output" }
       - { id: threads, default: 4}
       - { id: lib_type, source: "#lib_type"}
     outputs:
       - { id: alignment }
-      
-  - id: clean_trimmed_fastqs_1
-    run: "tools_string/cleanup.yml"
-    inputs:
-      - { id: files, source: "#adaptor_trimming/output_read1_trimmed_file" }
-      - { id: data_dir, source: "#temp_dir"}
-      - { id: do_clean, source: "#clean_trimmed_fastqs"}
-      - { id: previous_step, source: "#alignment/alignment" }
-    outputs:
-      - { id: output }
-      
-  - id: clean_trimmed_fastqs_2
-    run: "tools_string/cleanup.yml"
-    inputs:
-      - { id: files, source: "#adaptor_trimming/output_read2_trimmed_paired_file" }
-      - { id: data_dir, source: "#temp_dir"}
-      - { id: do_clean, source: "#clean_trimmed_fastqs"}
-      - { id: previous_step, source: "#alignment/alignment" }
-    outputs:
-      - { id: output } 
 
   - id: flag_stat_aligned
     run: "tools_string/samtools-flagstat.yml"
     scatter: "#flag_stat_aligned/input_bam_file"
     inputs:
-      - { id: file_dir, source: "#temp_dir" }
       - { id: input_bam_file, source: "#alignment/alignment" }
-      - { id: cleanup_check1, source: "#clean_trimmed_fastqs_1/output" }
-      - { id: cleanup_check2, source: "#clean_trimmed_fastqs_2/output" }
     outputs:
       - { id: output }
 
@@ -401,18 +358,7 @@ steps:
       - { id: isbam, default: "true"}
       - id: output_name
         source: "#alignment/alignment"
-        valueFrom:  $(inputs.input.substr(0, inputs.input.lastIndexOf('.'))).bam
-    outputs:
-      - { id: output }
-      
-  - id: clean_sams
-    run: "tools_string/cleanup.yml"
-    inputs:
-      - { id: files, source: "#alignment/alignment" }
-      - { id: data_dir, source: "#temp_dir"}
-      - { id: do_clean, source: "#clean_primary_sams"}
-      - { id: previous_step1, source: "#sam_to_bam/output" }
-      - { id: previous_step2, source: "#flag_stat_aligned/output" }
+        valueFrom:  $(inputs.input.basename.substr(0, inputs.input.basename.lastIndexOf('.'))).bam
     outputs:
       - { id: output }
 
@@ -426,31 +372,8 @@ steps:
       - { id: input_bam_file, source: "#sam_to_bam/output" }
       - { id: split_options, default: "reference" }
       - { id: ref_prefix, source: "#chr_prefix" }
-      - { id: cleanup_check, source: "#clean_sams/output" }
     outputs:
       - { id: output_bam_files }
-#      
-#  - id: fix_bams
-#    run: "tools_string/fix-bam-file.yml"
-#    scatter: "#fix_bams/inputBAMFile"
-#    inputs:
-#      - id: inputBAMFile
-#        source: "#split_by_chromosome/output_bam_files"
-#      - id: outputFileName
-#        source: "#split_by_chromosome/output_bam_files"
-#        valueFrom: $(inputs.inputBAMFile.basename + '.fixed').bam
-#    outputs:
-#      - { id: fixBam_output }
-
-  - id: clean_bams
-    run: "tools_string/cleanup.yml"
-    inputs:
-      - { id: files, source: "#sam_to_bam/output" }
-      - { id: data_dir, source: "#temp_dir"}
-      - { id: do_clean, source: "#clean_primary_bams"}
-      - { id: previous_step, source: "#split_by_chromosome/output_bam_files" }
-    outputs:
-      - { id: output }
 
   - id: fix_all_bams
     run: "tools_string/fix-all-bam-files.yml"
@@ -460,21 +383,9 @@ steps:
       - id: array_of_bams
         source: "#split_by_chromosome/output_bam_files"
 #        valueFrom: $([self])
-      - { id: cleanup_check, source: "#clean_bams/output" }
     outputs: 
       - { id: array_of_fixed_bams }
       
-  - id: clean_split_bams
-    scatter: "#clean_split_bams/files"
-    run: "tools_string/cleanup.yml"
-    inputs:
-      - { id: files, source: "#split_by_chromosome/output_bam_files" }
-      - { id: data_dir, source: "#temp_dir"}
-      - { id: do_clean, source: "#clean_chr_bams"}
-      - { id: previous_step, source: "#fix_all_bams/array_of_fixed_bams" }
-    outputs:
-      - { id: output }
-     
   - id: rearrange_bams
     run: "tools_string/rearrange_bams.yml"
     inputs:
@@ -482,7 +393,6 @@ steps:
         source: "#fix_all_bams/array_of_fixed_bams"
       - id: chromosomes
         source: "#chromosomes"
-      - { id: cleanup_check, source: "#clean_split_bams/output" }
     outputs:
       - { id: bam_arrays_per_chr }
       - { id: chrom_names}
@@ -492,39 +402,22 @@ steps:
     scatter: [ "#bam_merging/inputFileName_mergedSam", "#bam_merging/outputFileName_mergedSam" ]
     scatterMethod: 'dotproduct'
     inputs:
-      - { id: file_dir, source: "#temp_dir" }
-      - id: inputFileName_mergedSam 
-#        source: "#fix_bams/fixBam_output"
+      - id: inputFileName_mergedSam
         source: "#rearrange_bams/bam_arrays_per_chr"
       - id: outputFileName_mergedSam
         source: "#rearrange_bams/chrom_names"
-        valueFrom: ${ return inputs.file_dir + '/' + self + '_merged.bam'; }
-    # - { id: tmpdir, valueFrom: $(runtime.tmpdir)} # does not work due to some reason
-      - { id: tmpdir, source: "#temp_dir"}
+        valueFrom: $(self)_merged.bam
       - { id: createIndex, default: "true" }
     outputs:
       - { id: mergeSam_output }
-      
-  - id: clean_fixed_bams
-    scatter: "#clean_fixed_bams/files"
-    run: "tools_string/cleanup.yml"
-    inputs:
-      - { id: files, source: "#fix_all_bams/array_of_fixed_bams" }
-      - { id: data_dir, source: "#temp_dir" }
-      - { id: do_clean, source: "#clean_chr_bams" }
-      - { id: previous_step, source: "#bam_merging/mergeSam_output" }
-    outputs:
-      - { id: output }
-      
+
   - id: index_bam_file
     run: "tools_string/samtools-index.yml"
     scatter: "#index_bam_file/input"
     inputs:
-      - { id: file_dir, source: "#temp_dir" }
       - { id: input, source: "#bam_merging/mergeSam_output" }
       #- { id: bai, valueFrom: $(Boolean(1)) }
       - { id: bai, default: true }
-      - { id: cleanup_check, source: "#clean_fixed_bams/output" }
     outputs:
       - { id: index }
   
@@ -569,32 +462,19 @@ steps:
       - id: outputFileName_markDups
         #source: "#split_by_chromosome/output_bam_files"
         source: "#bam_merging/mergeSam_output"
-        valueFrom: $(inputs.inputFileName_markDups.substr(0, inputs.inputFileName_markDups.lastIndexOf('.')))_dupl_removed.bam
-      - { id: tmpdir, source: "#temp_dir" }
+        valueFrom: $(inputs.inputFileName_markDups.basename.substr(0, inputs.inputFileName_markDups.basename.lastIndexOf('.')))_dupl_removed.bam
       - { id: removeDuplicates, default: "true" }
       - id: metricsFile
         source: "#bam_merging/mergeSam_output"
-        valueFrom: $(inputs.inputFileName_markDups.substr(0, inputs.inputFileName_markDups.lastIndexOf('.')))_duplicate_metrics.txt
+        valueFrom: $(inputs.inputFileName_markDups.basename.substr(0, inputs.inputFileName_markDups.basename.lastIndexOf('.')))_duplicate_metrics.txt
       - { id: createIndex, default: "true" }
     outputs:
       - { id: markDups_output }
-      
-  - id: clean_merged_bams
-    run: "tools_string/cleanup.yml"
-    inputs:
-      - { id: files, source: "#bam_merging/mergeSam_output" }
-      - { id: data_dir, source: "#temp_dir" }
-      - { id: do_clean, source: "#clean_merged_bams" }
-      - { id: previous_step1, source: "#duplicates_removal/markDups_output" }
-      - { id: previous_step2, source: "#index_bam_file/index" }
-    outputs:
-      - { id: output }
-      
+ 
   - id: flag_stat_dup_removed
     run: "tools_string/samtools-flagstat.yml"
     scatter: "#flag_stat_dup_removed/input_bam_file"
     inputs:
-      - { id: file_dir, source: "#temp_dir" }
       - { id: input_bam_file, source: "#duplicates_removal/markDups_output"}
     outputs:
       - { id: output }
@@ -603,18 +483,15 @@ steps:
     run: "tools_string/picard-InsertSizeMetric.yml"
     scatter: "#insert_size_dist/inputFileName_insertSize"
     inputs:
-      - { id: file_dir, source: "#temp_dir" }
       - id: inputFileName_insertSize 
 #        source: "#fix_bams/fixBam_output"
         source: "#duplicates_removal/markDups_output"
       - id: outputFileName_insertSize
         source: "#duplicates_removal/markDups_output"
-        valueFrom: $( inputs.inputFileName_insertSize.substr(0, inputs.inputFileName_insertSize.lastIndexOf('.')) + '_insert_size_metrix.txt')
+        valueFrom: $( inputs.inputFileName_insertSize.basename.substr(0, inputs.inputFileName_insertSize.basename.lastIndexOf('.')) + '_insert_size_metrix.txt')
       - id: histogramFile
         source: "#duplicates_removal/markDups_output"
-        valueFrom: $( inputs.inputFileName_insertSize.substr(0, inputs.inputFileName_insertSize.lastIndexOf('.')) + '_insert_size_histogram.pdf')
-    # - { id: tmpdir, valueFrom: $(runtime.tmpdir)} # does not work due to some reason
-      - { id: tmpdir, source: "#temp_dir"}
+        valueFrom: $( inputs.inputFileName_insertSize.basename.substr(0, inputs.inputFileName_insertSize.basename.lastIndexOf('.')) + '_insert_size_histogram.pdf')
       - { id: createIndex, default: "true" }
     outputs:
       - { id: insertSize_output }
@@ -629,7 +506,7 @@ steps:
         source: "#reference_fasta"
       - id: mbiasfile_name
         source: "#duplicates_removal/markDups_output"
-        valueFrom: $(inputs.bam_file.substr(inputs.bam_file.lastIndexOf('/')+1, inputs.bam_file.lastIndexOf('.')))_mbias
+        valueFrom: $(inputs.bam_file.basename.substr(0, inputs.bam_file.basename.lastIndexOf('.')))_mbias
     outputs:
       - { id: mbias_file }
 
@@ -643,7 +520,7 @@ steps:
         source: "#reference_fasta"
       - id: mbiasfile_name
         source: "#duplicates_removal/markDups_output"
-        valueFrom: $(inputs.bam_file.substr(inputs.bam_file.lastIndexOf('/')+1, inputs.bam_file.lastIndexOf('.')))_mbiasTrimmed
+        valueFrom: $(inputs.bam_file.basename.substr(inputs.bam_file.basename.lastIndexOf('/')+1, inputs.bam_file.basename.lastIndexOf('.')))_mbiasTrimmed
       - { id: OT, source: "#pileometh_ot"}
       - { id: OB, source: "#pileometh_ob"}
       - { id: CTOT, source: "#pileometh_ctot"}
@@ -662,15 +539,13 @@ steps:
     run: "tools_string/methyldackel-extract.yml"
     scatter: "#methylation_calling/bam_file"
     inputs:
-      - { id: file_dir, source: "#temp_dir" }
-      #- { id: bam_file, source: "#duplicates_removal/markDups_output" }
       - id: bam_file
         #source: "#split_by_chromosome/output_bam_files"
         source: "#duplicates_removal/markDups_output"
       - id: bedfile_name
         #source: "#split_by_chromosome/output_bam_files"
         source: "#duplicates_removal/markDups_output"
-        valueFrom: $(inputs.bam_file.substr(inputs.bam_file.lastIndexOf('/')+1, inputs.bam_file.lastIndexOf('.')))
+        valueFrom: $(inputs.bam_file.basename.substr(0, inputs.bam_file.basename.lastIndexOf('.')))        
       - id: reference
         source: "#reference_fasta"
       #- { id: noCG, valueFrom: $(Boolean(0)) }
@@ -693,13 +568,9 @@ steps:
   - id: merge_meth_calls
     run: "tools_string/methcall-merger.yml"
     inputs:
-      - id: file_dir
-        source: "#temp_dir"
       - id: input_bed_files
         source: "#methylation_calling/methcall_bed"
-        valueFrom: $(prepend(self, inputs.file_dir))
       - id: output_file_name
-        source: "#temp_dir"
         valueFrom: 'methylation_calls_CpG.bedGraph'
     outputs:
       - { id: merged_bed_file }
@@ -714,7 +585,6 @@ steps:
   - id: methylation_calling_lambda
     run: "tools_string/methyldackel-extract.yml"
     inputs:
-      - { id: file_dir, source: "#temp_dir" }
       - id: reference
         source: "#reference_fasta"
 #        valueFrom: $(self)
@@ -739,27 +609,12 @@ steps:
     outputs:
       - { id: methcall_bed }
 
-  - id: clean_rmdup_bams
-    run: "tools_string/cleanup.yml"
-    inputs:
-      - { id: files, source: "#duplicates_removal/markDups_output" }
-      - { id: data_dir, source: "#temp_dir" }
-      - { id: do_clean, source: "#clean_dup_rm_bams" }
-      - { id: previous_step1, source: "#methylation_calling/methcall_bed" }
-      - { id: previous_step2, source: "#methylation_calling_lambda/methcall_bed" }
-    outputs:
-      - { id: output }
-
   - id: conversion_estimation_lambda
     run: "tools_string/bisulfite-conversion-lambda.yml"
     inputs:
-      - id: file_dir
-        source: "#temp_dir"
       - id: input_bed_file
         source: "#methylation_calling_lambda/methcall_bed"
-        valueFrom: $(inputs.file_dir + '/' + self)
       - id: output_file_name
-        source: "#temp_dir"
         valueFrom: "bisulfite_conversion.txt"
     outputs:
       - { id: bisulfite_conversion_file }

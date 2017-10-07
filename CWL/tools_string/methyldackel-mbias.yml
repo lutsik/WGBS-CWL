@@ -7,11 +7,11 @@ requirements:
 
 inputs:
 - id: "bam_file"
-  type: string
+  type: File
   description: |
     the input bam file
-#  secondaryFiles:
-#    - ^.bai
+  secondaryFiles:
+    - ^.bai
   inputBinding:
     position: 5
 

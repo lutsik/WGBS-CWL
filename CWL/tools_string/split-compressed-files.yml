@@ -1,15 +1,15 @@
 #!/usr/bin/env cwl-runner
+
+# Command Line:
+# zcat <file> | 'head -n  <max_reads*4> | \
+# split - --additional-suffix=<suffix_derived_from_filename> --lines=<size>
+#
+# Notes: head only executed for max_reads > 0
+
+
 cwlVersion: "cwl:draft-3"
 class: CommandLineTool
-#
 requirements:
-# - class: CreateFileRequirement
-#   fileDef:
-#     - filename: zcat_split.sh
-#       fileContent: "zcat $1 | split - $2 $3"
-#- $import: envvar-global.yml
-#- $import: alea-docker.yml
-#- class: InlineJavascriptRequirement
 - class: ShellCommandRequirement
 
 hints:
@@ -20,17 +20,12 @@ hints:
 
 inputs:
 
-- id: "file_dir"
-  type: string
-  inputBinding:
-    position: 1
-
 - id: "file"
   type: File
   description: |
     the input fastq file
   inputBinding:
-    position: 1002
+    position: 1
 
 - id: "size"
   type: int
@@ -38,7 +33,7 @@ inputs:
     size of a chunck in lines
   inputBinding:
     prefix: --lines=
-    position: 10004
+    position: 205
     separate: False
     valueFrom: $(self * 4)
     
@@ -46,32 +41,18 @@ inputs:
   type: int
   description: |
     take at most max_reads reads
-    
-- id: "suffix"
-  type: string
-  description: |
-    a suffix for chuncks
-  inputBinding:
-    prefix: --additional-suffix=
-    position: 10003
-    separate: False
+  
   
 outputs:
 - id: "output"
   type:
     type: array
-    items: string
+    items: File
   outputBinding:
-    glob: "list_of_files"
-    loadContents: true
-    outputEval: $(self[0].contents.split("\n").filter(function(n){ return n != "" }))
+    glob: $("*" + inputs.file.basename.replace(/\.fastq.*/i,"_splitted.fastq"))
 
-baseCommand: ["cd"]
+baseCommand: ["zcat"]
 arguments:
-- valueFrom: ";"
-  position: 1000
-- valueFrom: "zcat"
-  position: 1001
 - valueFrom: |
     ${
          if(inputs.max_reads>0){
@@ -80,7 +61,7 @@ arguments:
                return "";
          }
      }
-  position: 2000
+  position: 100
   shellQuote: false
 - valueFrom: |
     ${
@@ -90,7 +71,7 @@ arguments:
                return "";
          }
      }
-  position: 2001
+  position: 101
 - valueFrom: |
     ${
          if(inputs.max_reads>0){
@@ -99,7 +80,7 @@ arguments:
                return "";
          }
      }
-  position: 2002
+  position: 102
   shellQuote: false
 - valueFrom: |
     ${
@@ -109,38 +90,17 @@ arguments:
                return "";
          }
      }
-  position: 2003
+  position: 103
   shellQuote: false
 - valueFrom: "|"
-  position: 10000
+  position: 200
   shellQuote: false
 - valueFrom: "split"
-  position: 10001
+  position: 201
 - valueFrom: "-"
-  position: 10002
+  position: 202
   shellQuote: false
-  shellQuote: false
-- valueFrom: ";"
-  position: 100000
-  shellQuote: true
-- valueFrom: "ls -1"
-  position: 100001
-  shellQuote: false
-- valueFrom: "|"
-  position: 100002
-  shellQuote: false
-- valueFrom: "grep"
-  position: 100003
-  shellQuote: false
-- valueFrom: "$(inputs.suffix)"
-  position: 100004
-  shellQuote: false
-stdout: "list_of_files"
-#- valueFrom: "\""
-#  position: 10005
-#  shellQuote: false
-
-
-
-#- valueFrom: "zcat_split.sh"
-#  position: 1
+- valueFrom: $(inputs.file.basename.replace(/\.fastq.*/i,"_splitted.fastq"))
+  prefix: --additional-suffix=
+  position: 203
+  separate: False

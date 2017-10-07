@@ -8,4 +8,8 @@ mkdir -p $TMP_DIR/work
 mkdir -p $TMP_DIR/base
 mkdir -p $TMP_DIR/cache
 
+source activate toil_dev
+
 cwltool --debug --tmpdir-prefix=$TMP_DIR/work --basedir=$TMP_DIR/base --outdir=$TMP_DIR/out --cachedir=$TMP_DIR/cache ../wgbs-workflow-production.yaml ./test-job-wfl-verySmallFile.yml
+
+source deactivate toil_dev

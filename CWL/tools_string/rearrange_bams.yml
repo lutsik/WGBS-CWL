@@ -11,7 +11,7 @@ inputs:
       type: array
       items:
         type: array
-        items: string
+        items: File
 #, inputBinding: { loadContents: true } }
 
   - id: chromosomes
@@ -25,7 +25,7 @@ outputs:
       type: array
       items:
         type: array
-        items: string
+        items: File
         
   - id: chrom_names
     type:
@@ -45,7 +45,7 @@ expression: "${
               for(var i=0; i<inputs.bam_arrays.length; i++){
                for(var j=0; j<inputs.bam_arrays[i].length; j++){
                  var this_file = inputs.bam_arrays[i][j];
-                 if(this_file.indexOf('.' + chroms[ci] + '.') !== -1){
+                 if(this_file.basename.indexOf('.' + chroms[ci] + '.') !== -1){
                     chr_output[chr_output.length] = this_file;
                     any_found = true;
                  }

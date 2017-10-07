@@ -9,11 +9,11 @@ requirements:
 #- $import: samtools-docker.yml
 - class: InlineJavascriptRequirement
   expressionLib:
-  - "var new_ext = function() { var ext=inputs.bai?'.bai':inputs.csi?'.csi':'.bai'; return inputs.input.split('/').slice(-1)[0]+ext; };"
+  - "var new_ext = function() { var ext=inputs.bai?'.bai':inputs.csi?'.csi':'.bai'; return inputs.input.path.split('/').slice(-1)[0]+ext; };"
 
 inputs:
 - id: "#input"
-  type: string
+  type: File
   description: |
     Input bam file.
   inputBinding:
@@ -41,10 +41,10 @@ inputs:
 
 outputs:
   - id: "#index"
-    type: string
+    type: File
     description: "The index file"
     outputBinding:
-      outputEval: $(new_ext())
+      glob: $(new_ext())
 
 baseCommand: ["samtools", "index"]
 

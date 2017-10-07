@@ -6,12 +6,9 @@ class: CommandLineTool
 requirements:
 #- $import: envvar-global.yml
 #- $import: samtools-docker.yml
-  - class: InlineJavascriptRequirement
-  - class: ShellCommandRequirement
+- class: InlineJavascriptRequirement
 
 inputs:
-#  file_dir:
-#    type: string
   isbam:
     type: boolean
     default: false
@@ -65,7 +62,7 @@ inputs:
     doc: |
       read tag to strip (repeatable) [null]
   input:
-    type: string
+    type: File
     inputBinding:
       position: 4
 
@@ -175,18 +172,8 @@ inputs:
       prefix: -o
 outputs:
   output:
-    type: string
+    type: File
     outputBinding:
-      outputEval: $(inputs.output_name)
+      glob: $(inputs.output_name)
 
 baseCommand: [samtools, view]
-#baseCommand: cd
-#arguments:
-#- valueFrom: $(inputs.file_dir)
-#  position: -4
-#- valueFrom: ";"
-#  position: -3
-#- valueFrom: "samtools"
-#  position: -2
-#- valueFrom: "view"
-#  position: -1

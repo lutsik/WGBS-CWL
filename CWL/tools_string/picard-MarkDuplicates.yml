@@ -95,11 +95,12 @@ inputs:
     type:
       - "null"
       - type: array
-        items: string
+
+        items: File
         inputBinding: 
           prefix: "INPUT="
-#        secondaryFiles:
-#          - "^.bai"
+        secondaryFiles:
+          - "^.bai"
     inputBinding:
       position: 4
  
@@ -239,9 +240,10 @@ inputs:
       
 outputs:
   - id: "markDups_output"
-    type: string
+
+    type: File
     outputBinding: 
-      outputEval: $(inputs.outputFileName_markDups)
+      glob: $(inputs.outputFileName_markDups)
     
 baseCommand: ["java"]
 

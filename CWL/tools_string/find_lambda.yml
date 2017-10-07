@@ -9,18 +9,20 @@ inputs:
   - id: split_files
     type:
      type: array
-     items: string
+
+     items: File
 #, inputBinding: { loadContents: true } }
 
 outputs:
   - id: lambda_bam
-    type: string
+
+    type: File
 
 #expression: "$({'output': parseInt(inputs.file1.contents)})"
 expression: "${
             var index = inputs.split_files.length - 1;
             for(var i=0; i<inputs.split_files.length; i++){ 
-                if(inputs.split_files[i].indexOf('Lambda') !== -1){
+                if(inputs.split_files[i].basename.indexOf('Lambda') !== -1){
                     index = i;
                 }
              }

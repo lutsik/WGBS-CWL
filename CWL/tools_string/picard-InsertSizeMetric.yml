@@ -86,12 +86,10 @@ inputs:
       
   - id: "#inputFileName_insertSize"
     description: One or more input SAM or BAM files to analyze. Must be coordinate sorted. Default value null. This option may be specified 0 or more times
-    type: string
-#      - type: array
-#        items: string
-#    inputBinding: 
-#        secondaryFiles:
-#          - "^.bai"
+    type: File
+    inputBinding: 
+        secondaryFiles:
+          - "^.bai"
     inputBinding:
       position: 4
       prefix: "INPUT="
@@ -162,9 +160,9 @@ inputs:
 
 outputs:
   - id: "insertSize_output"
-    type: string
+    type: File
     outputBinding: 
-      outputEval: $(inputs.outputFileName_insertSize)
+      glob: $(inputs.outputFileName_insertSize)
 
 baseCommand: ["java"]
 

@@ -7,11 +7,8 @@ requirements:
 
 
 inputs:
-- id: file_dir
-  type: string
-
 - id: "bam_file"
-  type: string
+  type: File
   description: |
     the input bam file
   inputBinding:
@@ -152,21 +149,13 @@ inputs:
     
 outputs:
 - id: "methcall_bed"
-  type: string
+  type: File
   outputBinding:
-    glob: "meth_calls"
-    loadContents: true
-    outputEval: $(self[0].contents.split("\n")[0])
+    glob: $("*" + inputs.bedfile_name + "*")
 
 #baseCommand: ["/ngs_share/tools/PileOMeth_dev/PileOMeth"]
-baseCommand: cd
+baseCommand: "/ngs_share/tools/MethylDackel_dev/MethylDackel"
 arguments:
-- valueFrom: $(inputs.file_dir)
-  position: -2
-- valueFrom: ";"
-  position: -1
-- valueFrom: "/ngs_share/tools/MethylDackel_dev/MethylDackel"
-  position: 1 
 - valueFrom: "extract"
   position: 2
 - valueFrom: ${
@@ -185,18 +174,3 @@ arguments:
       }
     }
   position: 10001
-- valueFrom: ";"
-  position: 1000000
-- valueFrom: "ls"
-  position: 1000001
-- valueFrom: "*bedGraph"
-  position: 1000002
-  shellQuote: false
-- valueFrom: "|"
-  position: 1000003
-- valueFrom: "grep"
-  position: 1000004
-- valueFrom: $(inputs.bedfile_name)
-  position: 1000005
-
-stdout: "meth_calls"

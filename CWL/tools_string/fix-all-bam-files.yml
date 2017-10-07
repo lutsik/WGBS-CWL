@@ -6,24 +6,21 @@ requirements:
   - class: ScatterFeatureRequirement
   - class: InlineJavascriptRequirement
     expressionLib:
-    - "var new_ext = function() { var ext=inputs.bai?'.bai':inputs.csi?'.csi':'.bai'; return inputs.input.split('/').slice(-1)[0]+ext; };"
+    - "var new_ext = function() { var ext=inputs.bai?'.bai':inputs.csi?'.csi':'.bai'; return inputs.input.path.split('/').slice(-1)[0]+ext; };"
   - class: StepInputExpressionRequirement
   - class: MultipleInputFeatureRequirement
 
 inputs:
-  - id: file_dir
-    type: string
-    
   - id: array_of_bams
     type: 
       type: array
-      items: string
+      items: File
 
 outputs:
   - id: array_of_fixed_bams
     type:
       type: array
-      items: string
+      items: File
     source: "#fix_bams/fixBam_output"
 
 steps:
@@ -31,10 +28,9 @@ steps:
     run: "fix-bam-file.yml"
     scatter: "#fix_bams/inputBAMFile"
     inputs:
-      - { id: file_dir, source: "#file_dir" }
       - { id: inputBAMFile, source: "#array_of_bams" }
       - id: outputFileName
         source: "#array_of_bams"
-        valueFrom: $(inputs.inputBAMFile.substr(0,inputs.inputBAMFile.lastIndexOf('.')) + '.fixed').bam
+        valueFrom: $(inputs.inputBAMFile.basename.substr(0,inputs.inputBAMFile.basename.lastIndexOf('.')) + '.fixed').bam
     outputs:
       - { id: fixBam_output }

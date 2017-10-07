@@ -12,17 +12,11 @@ requirements:
 hints:
   - class: ResourceRequirement
     coresMin: 1
-    ramMin: 24092
+    ramMin: 4092
 #    outdirMin: 512000
 #    description: "the process requires at least 4G of RAM"
     
 inputs:
-
-  - id: "file_dir"
-    type: string
-    #inputBinding:
-    #  position: 1
-
   - id: java_opts
     type:
       - 'null'
@@ -77,14 +71,14 @@ inputs:
       position: 4
       prefix: "-trimlog"
   - id: input_read1_fastq_file
-    type: string
+    type: File
     inputBinding:
       position: 5
     description: "FASTQ file for input read (read R1 in Paired End mode)"
   - id: input_read2_fastq_file
     type:
       - 'null'
-      - string
+      - File
     inputBinding:
       position: 6
     description: "FASTQ file for read R2 in Paired End mode"
@@ -189,7 +183,7 @@ inputs:
     description: |
       <length>
       Removes the specified number of bases, regardless of quality, from the beginning of the read.
-      <length>: The number of bases to remove, from the start of the read.
+      <length>: The number of bases to keep, from the start of the read.
   - id: tailcrop
     type: ['null', int]
     inputBinding:
@@ -240,81 +234,70 @@ inputs:
 
 outputs:
   - id: "#output_read1_trimmed_file"
-    type: string
+    type: File
     outputBinding:
-      outputEval: $(inputs.input_read1_fastq_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed.fastq')
+      glob: $(inputs.input_read1_fastq_file.path.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed.fastq')
   - id: "#output_read1_trimmed_unpaired_file"
-    type: ['null', string]
+    type: ['null', File]
     outputBinding:
-      outputEval: |
+      glob: |
         ${
           if (inputs.end_mode == "PE")
-            return inputs.file_dir + '/' +inputs.input_read1_fastq_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_unpaired_trimmed.fastq';
+            return inputs.input_read1_fastq_file.path.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_unpaired_trimmed.fastq';
           return null;
         }
   - id: "#output_read2_trimmed_paired_file"
-    type: ['null', string]
+    type: ['null', File]
     outputBinding:
-      outputEval: |
+      glob: |
         ${
           if (inputs.end_mode == "PE" && inputs.input_read2_fastq_file)
-            return inputs.file_dir + '/' + inputs.input_read2_fastq_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed.fastq';
+            return inputs.input_read2_fastq_file.path.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed.fastq';
           return null;
         }
   - id: "#output_read2_trimmed_unpaired_file"
-    type: ['null', string]
+    type: ['null', File]
     outputBinding:
-      outputEval: |
+      glob: |
         ${
           if (inputs.end_mode == "PE" && inputs.input_read2_fastq_file)
-            return inputs.file_dir + '/' +inputs.input_read2_fastq_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_unpaired_trimmed.fastq';
+            return inputs.input_read2_fastq_file.path.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_unpaired_trimmed.fastq';
           return null;
         }
   - id: "#output_log_file"
-    type: ['null', string]
+    type: ['null', File]
     description: "Trimmomatic Log file."
     outputBinding:
-      outputEval: ${ return inputs.file_dir + '/' + inputs.log_filename}
+      glob: $(inputs.log_filename)
 
-baseCommand: cd
+baseCommand: java
 arguments:
-  - valueFrom: $(inputs.file_dir)
-    position: -2
-  - valueFrom: ";"
-    position: -1
-  - valueFrom: "java"
-    position: 0
-  - valueFrom: $(inputs.input_read1_fastq_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed.fastq')
+  - valueFrom: $(inputs.input_read1_fastq_file.path.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed.fastq')
     position: 7
   - valueFrom: |
       ${
         if (inputs.end_mode == "PE" && inputs.input_read2_fastq_file)
-          return inputs.input_read1_fastq_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed_unpaired.fastq';
+          return inputs.input_read1_fastq_file.path.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed_unpaired.fastq';
         return null;
       }
     position: 8
   - valueFrom: |
       ${
         if (inputs.end_mode == "PE" && inputs.input_read2_fastq_file)
-          return inputs.input_read2_fastq_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed.fastq';
+          return inputs.input_read2_fastq_file.path.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed.fastq';
         return null;
       }
     position: 9
   - valueFrom: |
       ${
         if (inputs.end_mode == "PE" && inputs.input_read2_fastq_file)
-          return inputs.input_read2_fastq_file.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed_unpaired.fastq';
+          return inputs.input_read2_fastq_file.path.replace(/^.*[\\\/]/, '').replace(/\.[^/.]+$/, '') + '_trimmed_unpaired.fastq';
         return null;
       }
     position: 10
-  - valueFrom: $("ILLUMINACLIP:" + inputs.input_adapters_file + ":"+ inputs.illuminaclip)
+  - valueFrom: $("ILLUMINACLIP:" + inputs.input_adapters_file.path + ":"+ inputs.illuminaclip)
     position: 11
-  - valueFrom: "2>"
-    shellQuote: false
-    position: 12
-  - valueFrom: $(inputs.file_dir + '/' + inputs.log_filename.replace('.log','_stdout.log'))
-    position: 13
-    
+
 description: |
   Trimmomatic is a fast, multithreaded command line tool that can be used to trim and crop
   Illumina (FASTQ) data as well as to remove adapters. These adapters can pose a real problem
