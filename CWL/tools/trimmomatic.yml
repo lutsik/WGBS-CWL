@@ -26,7 +26,7 @@ inputs:
       position: 1
       shellQuote: false
   - id: trimmomatic_jar_path
-    type: string
+    type: File
     inputBinding:
       position: 2
       prefix: "-jar"
@@ -184,6 +184,16 @@ inputs:
       <length>
       Removes the specified number of bases, regardless of quality, from the beginning of the read.
       <length>: The number of bases to keep, from the start of the read.
+  - id: tailcrop
+    type: ['null', int]
+    inputBinding:
+      position: 13
+      prefix: "TAILCROP:"
+      separate: false
+    description: |
+      <length>
+      Removes the specified number of bases, regardless of quality, from the end of the read.
+      <length>: The number of bases to remove, from the end of the read.
   - id: minlen
     type: ['null', int]
     inputBinding:

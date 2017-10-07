@@ -139,7 +139,7 @@ inputs:
       prefix: "COMMENT="
 
   - id: "#tmpdir"
-    type: string
+    type: ["null", string]
     description: >
       Default value null. This option may be specified 0 or more times.
     inputBinding:

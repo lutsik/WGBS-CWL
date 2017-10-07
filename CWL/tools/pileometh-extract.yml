@@ -2,9 +2,16 @@
 cwlVersion: "cwl:draft-3"
 class: CommandLineTool
 
+requirements:
+  - class: ShellCommandRequirement
+
+
 inputs:
+- id: file_dir
+  type: string
+
 - id: "bam_file"
-  type: File
+  type: string
   description: |
     the input bam file
   inputBinding:
@@ -145,13 +152,21 @@ inputs:
     
 outputs:
 - id: "methcall_bed"
-  type: File
+  type: string
   outputBinding:
-    glob: "*$(inputs.bedfile_name)*"
+    glob: "meth_calls"
+    loadContents: true
+    outputEval: $(self[0].contents.split("\n")[0])
 
-baseCommand: ["/ngs_share/tools/PileOMeth_dev/PileOMeth"]
-
+#baseCommand: ["/ngs_share/tools/PileOMeth_dev/PileOMeth"]
+baseCommand: cd
 arguments:
+- valueFrom: $(inputs.file_dir)
+  position: -2
+- valueFrom: ";"
+  position: -1
+- valueFrom: "/ngs_share/tools/PileOMeth_dev/PileOMeth"
+  position: 1 
 - valueFrom: "extract"
   position: 2
 - valueFrom: ${
@@ -169,4 +184,19 @@ arguments:
         return null;
       }
     }
-  position: 10001 
+  position: 10001
+- valueFrom: ";"
+  position: 1000000
+- valueFrom: "ls"
+  position: 1000001
+- valueFrom: "*bedGraph"
+  position: 1000002
+  shellQuote: false
+- valueFrom: "|"
+  position: 1000003
+- valueFrom: "grep"
+  position: 1000004
+- valueFrom: $(inputs.bedfile_name)
+  position: 1000005
+
+stdout: "meth_calls"

@@ -9,11 +9,13 @@ inputs:
   - id: split_files
     type:
      type: array
+
      items: File
 #, inputBinding: { loadContents: true } }
 
 outputs:
   - id: lambda_bam
+
     type: File
 
 #expression: "$({'output': parseInt(inputs.file1.contents)})"

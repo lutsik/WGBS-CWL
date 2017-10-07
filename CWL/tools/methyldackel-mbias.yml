@@ -2,6 +2,9 @@
 cwlVersion: "cwl:draft-3"
 class: CommandLineTool
 
+requirements:
+  - class: ShellCommandRequirement
+
 inputs:
 - id: "bam_file"
   type: File
@@ -23,7 +26,7 @@ inputs:
 #    position: 3
 
 - id: "reference"
-  type: string
+  type: File
   description: |
     FASTA file with the reference genome
   inputBinding:
@@ -36,7 +39,7 @@ inputs:
   inputBinding:
     position: 1000000
     separate: true
-
+    
 - id: "OT"
   type: string
   description: |
@@ -108,7 +111,6 @@ inputs:
     position: 100000
     prefix: "--nCTOB"
     separate: true
-        
  
 outputs:
 - id: "mbias_file"

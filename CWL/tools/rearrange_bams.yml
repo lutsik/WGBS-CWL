@@ -14,6 +14,11 @@ inputs:
         items: File
 #, inputBinding: { loadContents: true } }
 
+  - id: chromosomes
+    type:
+      type: array
+      items: string
+
 outputs:
   - id: bam_arrays_per_chr
     type:
@@ -29,23 +34,31 @@ outputs:
 
 expression: "${
 
-            var chroms = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6', 'chr7', 'chr8', 'chr9', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15', 'chr16', 'chr17', 'chr18', 'chr19', 'chr20', 'chr21', 'chr22', 'chrX', 'chrY'];
+            var chroms = inputs.chromosomes;
             var rearranged = [];
+            var found_chroms = [];
+            var any_found = false;
 
             for(var ci=0; ci<chroms.length; ci++){
               var chr_output = [];
+              any_found = false;
               for(var i=0; i<inputs.bam_arrays.length; i++){
                for(var j=0; j<inputs.bam_arrays[i].length; j++){
                  var this_file = inputs.bam_arrays[i][j];
                  if(this_file.basename.indexOf('.' + chroms[ci] + '.') !== -1){
                     chr_output[chr_output.length] = this_file;
+                    any_found = true;
                  }
                }
               }
-             rearranged[ci] = chr_output;
+             
+             if (any_found) {
+                rearranged[rearranged.length] = chr_output;
+                found_chroms[found_chroms.length] = chroms[ci];
+             }
             }
             var output = {};
             output['bam_arrays_per_chr'] = rearranged;
-            output['chrom_names'] = chroms;         
+            output['chrom_names'] = found_chroms;         
             return output;
           }"

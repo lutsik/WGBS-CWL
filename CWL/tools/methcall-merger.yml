@@ -6,9 +6,12 @@ requirements:
   - class: InlineJavascriptRequirement
 
 inputs:
+
+
   - id: input_bed_files
     type:
      type: array
+
      items: File
     inputBinding:
      position: 100000
@@ -29,6 +32,8 @@ arguments:
     position: 1
   - valueFrom: "-q"
     position: 2
+
+
 #  - valueFrom: |
 #      ${
 #          var file_list = '';

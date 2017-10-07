@@ -25,45 +25,34 @@ inputs:
     position: 1
     prefix: --threads
     separate: true
+    
   #required: false
-#- id: '#reference'
-#  type:
-#  - File
-#  label: ''
-#  description: the reference fasta file
-#  secondaryFiles:
-#    - .bwameth.c2t
-#    - .bwameth.c2t.amb
-#    - .bwameth.c2t.ann
-#    - .bwameth.c2t.bwt
-#    - .bwameth.c2t.pac
-#    - .bwameth.c2t.sa
-#  inputBinding:
-#    position: 2
-#    prefix: --reference
-#    separate: true
-
 - id: '#reference'
-  type:
-  - string
+  type: File
   label: ''
-  description: the reference fasta file location
+  description: the reference fasta file
+  secondaryFiles:
+    - .bwameth.c2t
+    - .bwameth.c2t.amb
+    - .bwameth.c2t.ann
+    - .bwameth.c2t.bwt
+    - .bwameth.c2t.pac
+    - .bwameth.c2t.sa
   inputBinding:
     position: 2
     prefix: --reference
     separate: true
 
+
 - id: '#read1'
-  type:
-  - File
+  type: File
   label: ''
   description: the input fastq file with the first mate
   inputBinding:
     position: 3
     separate: true
 - id: '#read2'
-  type:
-  - File
+  type: File
   label: ''
   description: the input fastq file with the second mate
   #streamable: false
@@ -73,20 +62,27 @@ inputs:
   #required: false
 - id: '#alignment_filename'
   type: string
+- id: '#lib_type'
+  type: string
+  description: |
+    Library type, directional or non-directional  
   
 outputs:
 - id: '#alignment'
   type: File
-  #streamable: true
   outputBinding:
    glob: $(inputs['alignment_filename']).sam
-#- id: '#alignment_stderr'
-#  type: File
-#  outputBinding:
-#   glob: $(inputs['alignment_filename']).log
 
 baseCommand:
 - bwameth.py
 stdout: $(inputs['alignment_filename']).sam
 #stderr: $(inputs['alignment_filename']).log
-arguments: []
+arguments:
+- valueFrom: ${
+      if(inputs.lib_type=="directional"){
+        return null;
+      }else{
+        return "--non-directional";
+      }
+    }
+  position: 200

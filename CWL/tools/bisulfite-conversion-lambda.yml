@@ -6,7 +6,10 @@ requirements:
   - class: InlineJavascriptRequirement
 
 inputs:
+
+
   - id: input_bed_file
+
     type: File
     inputBinding:
      position: 100000
