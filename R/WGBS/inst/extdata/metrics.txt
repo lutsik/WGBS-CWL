@@ -1,4 +1,0 @@
-Name	Type	Single strand	Both strands	Sites	Symmetric	Function
-Common CpGs	integer	yes	yes	intersection	yes	wgbs.metric.total.elements
-Correlation of beta values	numeric	yes	yes	intersection	yes	wgbs.metric.beta.correlation
-Coverage difference	integer	yes	yes	union	no	wgbs.metric.coverage.difference
