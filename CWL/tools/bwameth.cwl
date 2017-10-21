@@ -27,14 +27,14 @@ inputs:
     doc: "Library type, directional or non-directional  \n"
   alignment_filename: string
   read1:
-    type: ['null', 'File']
+    type: File
     label: ''
     inputBinding:
       position: 3
       separate: true
     doc: the input fastq file with the first mate
   read2:
-    type: File
+    type: ['null', 'File']
     label: ''
   #streamable: false
     inputBinding:
