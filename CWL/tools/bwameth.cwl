@@ -27,7 +27,7 @@ inputs:
     doc: "Library type, directional or non-directional  \n"
   alignment_filename: string
   read1:
-    type: File
+    type: ['null', 'File']
     label: ''
     inputBinding:
       position: 3
