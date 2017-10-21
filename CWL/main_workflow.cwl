@@ -255,7 +255,7 @@ outputs:
     outputSource: '#conversion_estimation_lambda/bisulfite_conversion_file'
 steps:
 - id: split_read1_files
-  run: tools/split-compressed-files.yml
+  run: tools/split-compressed-files.cwl
   scatter: '#split_read1_files/file'
   in:
   - {id: file, source: '#inp_read1'}
@@ -268,7 +268,7 @@ steps:
   out:
   - {id: output}
 - id: split_read2_files
-  run: tools/split-compressed-files.yml
+  run: tools/split-compressed-files.cwl
   scatter: '#split_read2_files/file'
   in:
   - {id: file, source: '#inp_read2'}
@@ -281,19 +281,19 @@ steps:
   out:
   - {id: output}
 - id: flatten1
-  run: tools/flatten_fastq_arrays.yml
+  run: tools/flatten_fastq_arrays.cwl
   in:
   - {id: fastq_arrays, source: '#split_read1_files/output'}
   out:
   - {id: flattened_fastq_array}
 - id: flatten2
-  run: tools/flatten_fastq_arrays.yml
+  run: tools/flatten_fastq_arrays.cwl
   in:
   - {id: fastq_arrays, source: '#split_read2_files/output'}
   out:
   - {id: flattened_fastq_array}
 - id: adaptor_trimming
-  run: tools/trimmomatic.yml
+  run: tools/trimmomatic.cwl
   scatter: ['#adaptor_trimming/input_read1_fastq_file', '#adaptor_trimming/input_read2_fastq_file']
   scatterMethod: dotproduct
   in:
@@ -321,7 +321,7 @@ steps:
   - {id: output_read2_trimmed_paired_file}
   - {id: output_log_file}
 - id: alignment
-  run: tools/bwameth.yml
+  run: tools/bwameth.cwl
   scatter: ['#alignment/read1', '#alignment/read2']
   scatterMethod: dotproduct
   in:
@@ -337,14 +337,14 @@ steps:
   out:
   - {id: alignment}
 - id: flag_stat_aligned
-  run: tools/samtools-flagstat.yml
+  run: tools/samtools-flagstat.cwl
   scatter: '#flag_stat_aligned/input_bam_file'
   in:
   - {id: input_bam_file, source: '#alignment/alignment'}
   out:
   - {id: output}
 - id: sam_to_bam
-  run: tools/samtools-view.yml
+  run: tools/samtools-view.cwl
   scatter: '#sam_to_bam/input'
   in:
   - {id: input, source: '#alignment/alignment'}
@@ -355,7 +355,7 @@ steps:
   out:
   - {id: output}
 - id: split_by_chromosome
-  run: tools/bamtools-split.yml
+  run: tools/bamtools-split.cwl
   scatter: '#split_by_chromosome/input_bam_file'
   in:
   - {id: file_dir, source: '#temp_dir'}
@@ -365,7 +365,7 @@ steps:
   out:
   - {id: output_bam_files}
 - id: fix_all_bams
-  run: tools/fix-all-bam-files.yml
+  run: tools/fix-all-bam-files.cwl
   scatter: '#fix_all_bams/array_of_bams'
   in:
   - {id: file_dir, source: '#temp_dir'}
@@ -375,7 +375,7 @@ steps:
   out:
   - {id: array_of_fixed_bams}
 - id: rearrange_bams
-  run: tools/rearrange_bams.yml
+  run: tools/rearrange_bams.cwl
   in:
   - id: bam_arrays
     source: '#fix_all_bams/array_of_fixed_bams'
@@ -385,7 +385,7 @@ steps:
   - {id: bam_arrays_per_chr}
   - {id: chrom_names}
 - id: bam_merging
-  run: tools/picard-MergeSamFiles.yml
+  run: tools/picard-MergeSamFiles.cwl
   scatter: ['#bam_merging/inputFileName_mergedSam', '#bam_merging/outputFileName_mergedSam']
   scatterMethod: dotproduct
   in:
@@ -398,7 +398,7 @@ steps:
   out:
   - {id: mergeSam_output}
 - id: index_bam_file
-  run: tools/samtools-index.yml
+  run: tools/samtools-index.cwl
   scatter: '#index_bam_file/input'
   in:
   - {id: input, source: '#bam_merging/mergeSam_output'}
@@ -407,7 +407,7 @@ steps:
   - {id: index}
 #### OLD MERGING                  
 #  - id: bam_merging
-#    run: "tools/picard-MergeSamFiles.yml"
+#    run: "tools/picard-MergeSamFiles.cwl"
 #    in:
 #      - id: inputFileName_mergedSam 
 #        source: "#alignment/alignment"
@@ -419,7 +419,7 @@ steps:
 #      - { id: mergeSam_output }
 #                  
 #  - id: duplicates_removal
-#    run: "tools/picard-MarkDuplicates.yml"
+#    run: "tools/picard-MarkDuplicates.cwl"
 #    in:
 #      - id: inputFileName_markDups
 #        source: "#bam_merging/mergeSam_output"
@@ -434,7 +434,7 @@ steps:
 #      - { id: markDups_output }
 
 - id: duplicates_removal
-  run: tools/picard-MarkDuplicates.yml
+  run: tools/picard-MarkDuplicates.cwl
   scatter: '#duplicates_removal/inputFileName_markDups'
   in:
 #      - { id: file_dir, source: "#temp_dir" }
@@ -455,14 +455,14 @@ steps:
   out:
   - {id: markDups_output}
 - id: flag_stat_dup_removed
-  run: tools/samtools-flagstat.yml
+  run: tools/samtools-flagstat.cwl
   scatter: '#flag_stat_dup_removed/input_bam_file'
   in:
   - {id: input_bam_file, source: '#duplicates_removal/markDups_output'}
   out:
   - {id: output}
 - id: insert_size_dist
-  run: tools/picard-InsertSizeMetric.yml
+  run: tools/picard-InsertSizeMetric.cwl
   scatter: '#insert_size_dist/inputFileName_insertSize'
   in:
   - id: inputFileName_insertSize
@@ -480,7 +480,7 @@ steps:
   out:
   - {id: insertSize_output}
 - id: mbias_calculation
-  run: tools/pileometh-mbias.yml
+  run: tools/pileometh-mbias.cwl
   scatter: '#mbias_calculation/bam_file'
   in:
   - {id: bam_file, source: '#duplicates_removal/markDups_output'}      #"#bam_merging/mergeSam_output"
@@ -494,7 +494,7 @@ steps:
   out:
   - {id: mbias_file}
 - id: mbias_calculation_trimmed
-  run: tools/methyldackel-mbias.yml
+  run: tools/methyldackel-mbias.cwl
   scatter: '#mbias_calculation_trimmed/bam_file'
   in:
   - {id: bam_file, source: '#duplicates_removal/markDups_output'}      #"#bam_merging/mergeSam_output"
@@ -520,7 +520,7 @@ steps:
   out:
   - {id: mbias_file}
 - id: methylation_calling
-  run: tools/methyldackel-extract.yml
+  run: tools/methyldackel-extract.cwl
   scatter: '#methylation_calling/bam_file'
   in:
   - id: bam_file
@@ -547,7 +547,7 @@ steps:
   out:
   - {id: methcall_bed}
 - id: merge_meth_calls
-  run: tools/methcall-merger.yml
+  run: tools/methcall-merger.cwl
   in:
   - id: input_bed_files
     source: '#methylation_calling/methcall_bed'
@@ -556,13 +556,13 @@ steps:
   out:
   - {id: merged_bed_file}
 - id: find_lambda_file
-  run: tools/find_lambda.yml
+  run: tools/find_lambda.cwl
   in:
   - {id: split_files, source: '#duplicates_removal/markDups_output'}
   out:
   - {id: lambda_bam}
 - id: methylation_calling_lambda
-  run: tools/methyldackel-extract.yml
+  run: tools/methyldackel-extract.cwl
   in:
   - id: reference
     source: '#reference_fasta'
@@ -585,7 +585,7 @@ steps:
   out:
   - {id: methcall_bed}
 - id: conversion_estimation_lambda
-  run: tools/bisulfite-conversion-lambda.yml
+  run: tools/bisulfite-conversion-lambda.cwl
   in:
   - id: input_bed_file
     source: '#methylation_calling_lambda/methcall_bed'
