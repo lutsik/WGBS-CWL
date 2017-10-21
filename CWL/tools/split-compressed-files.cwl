@@ -16,7 +16,6 @@ hints:
 - class: ResourceRequirement
   coresMin: 1
   ramMin: 15000
-  diskMin: 15000
 
 inputs:
   size:
