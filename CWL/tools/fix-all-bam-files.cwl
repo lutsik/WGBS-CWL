@@ -24,7 +24,7 @@ outputs:
   outputSource: '#fix_bams/fixBam_output'
 steps:
 - id: fix_bams
-  run: fix-bam-file.yml
+  run: fix-bam-file.cwl
   scatter: '#fix_bams/inputBAMFile'
   in:
   - {id: inputBAMFile, source: '#array_of_bams'}
